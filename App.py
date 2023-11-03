@@ -24,6 +24,7 @@ class App(QMainWindow):
         super().__init__()
         self.supplier_list = None
         self.filtered_suppliers = []
+        self.image_loaders = []
         self.order_key='none'
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
@@ -143,6 +144,7 @@ class App(QMainWindow):
             self.table_widget.verticalHeader().setVisible(False)
 
             # 填充表格数据
+            self.image_loaders.clear()
             for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
                 # Image column
                 image_label = QLabel()
@@ -150,8 +152,9 @@ class App(QMainWindow):
                 self.table_widget.setCellWidget(i, 0, image_label)
 
                 loader = ImageLoader(image_path, i)
-                loader.image_loaded.connect(self.set_thumbnail)  # 将信号连接到槽函数
-                loader.start()  # 启动线程
+                loader.image_loaded.connect(self.set_thumbnail)
+                self.image_loaders.append(loader)  # 保存线程引用
+                loader.start()
 
                 # ID column
                 self.table_widget.setItem(i, 1, QTableWidgetItem(str(id)))
@@ -219,6 +222,9 @@ class App(QMainWindow):
         image_label = self.table_widget.cellWidget(index, 0)
         if image_label:
             image_label.setPixmap(thumbnail)
+        sender = self.sender()
+        if sender:
+            sender.deleteLater()
 
 
 
