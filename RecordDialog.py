@@ -1,42 +1,43 @@
-from PyQt5.QtWidgets import (
-    QDialog, QLabel, QVBoxLayout, QTextEdit, QPushButton
-)
-from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
 
 
 class RecordDialog(QDialog):
-    def __init__(self, parent=None, rug_id="", records=""):
+    def __init__(self, parent=None, rug_id="", records=[]):
         super().__init__(parent)
         self.setWindowTitle('记录')
-        # 移除帮助按钮，并添加最大化/最小化按钮
         self.setWindowFlags(self.windowFlags() | Qt.WindowMinMaxButtonsHint)
-        
-        # 设置一个合适的最小尺寸
         self.setMinimumSize(800, 600)
 
         self.layout = QVBoxLayout()
-
-        self.record_label = QLabel('记录:')
-        self.record_display = QTextEdit()
-        self.record_display.setMinimumHeight(200)
-        self.record_display.setReadOnly(True)  # 设置为只读，因为这只是用来显示记录的
-
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)  # 假设有四列数据
+        self.table.setHorizontalHeaderLabels(['型号', '日期', '修改人', '内容'])
+        self.table.setRowCount(len(records))
+        
+        for i, record in enumerate(records):
+            self.table.setItem(i, 0, QTableWidgetItem(record[0]))
+            # 假设 record[1] 是一个 datetime.date 对象
+            date_str = record[1].strftime('%Y-%m-%d')  # 将日期转换为字符串
+            self.table.setItem(i, 1, QTableWidgetItem(date_str))
+            self.table.setItem(i, 2, QTableWidgetItem(record[2]))
+            self.table.setItem(i, 3, QTableWidgetItem(record[3]))
+        
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 自动调整列宽
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 设置表格内容不可编辑
+        
         font = QFont()
         font.setPointSize(16)
-        self.record_label.setFont(font)
-        self.record_display.setFont(font)
-
+        self.table.setFont(font)
+        
         self.close_button = QPushButton('关闭')
         self.close_button.setFont(font)
         self.close_button.setFixedSize(100, 56)
-        self.close_button.clicked.connect(self.reject)  # 直接关闭对话框，无需保存
-
-        self.layout.addWidget(self.record_label)
-        self.layout.addWidget(self.record_display)
+        self.close_button.clicked.connect(self.reject)
+        
+        self.layout.addWidget(self.table)
         self.layout.addWidget(self.close_button)
 
         self.setLayout(self.layout)
-
-        self.record_display.setPlainText(records)  # 显示记录
         self.rug_id = rug_id

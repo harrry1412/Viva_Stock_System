@@ -393,11 +393,12 @@ class App(QMainWindow):
         rug_id = self.table_widget.item(row, id_col).text()
         records = self.db_manager.fetch_records(rug_id)
 
-        formatted_records = ["型号: {}, 日期: {}, 修改人：{}, 内容: {}".format(record[0], record[1], record[2], record[3]) for record in records]
-        records_str = "\n\n".join(formatted_records)
+        # 此处不再需要将记录转换为字符串，直接将列表传递给RecordDialog
+        # records 已经是一个列表，每个元素代表一条记录，每条记录也是一个列表
 
-        record_dialog = RecordDialog(self, rug_id, records_str)
+        record_dialog = RecordDialog(self, rug_id, records)
         record_dialog.exec_()
+
 
     def update_note(self, row, rug_id, new_note):
         try:
