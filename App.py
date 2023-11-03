@@ -1,3 +1,4 @@
+from PyQt5.QtCore import QThreadPool
 import os
 import openpyxl
 import mysql.connector
@@ -22,6 +23,8 @@ from ImageLoader import ImageLoader
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.thread_pool = QThreadPool()
+        print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
         self.supplier_list = None
         self.filtered_suppliers = []
         self.image_loaders = []
@@ -152,9 +155,9 @@ class App(QMainWindow):
                 self.table_widget.setCellWidget(i, 0, image_label)
 
                 loader = ImageLoader(image_path, i)
-                loader.image_loaded.connect(self.set_thumbnail)
-                self.image_loaders.append(loader)  # 保存线程引用
-                loader.start()
+                loader.signals.image_loaded.connect(self.set_thumbnail)
+                # self.image_loaders.append(loader)  # 不需要保存引用
+                self.thread_pool.start(loader)  # 使用线程池启动任务
 
                 # ID column
                 self.table_widget.setItem(i, 1, QTableWidgetItem(str(id)))
@@ -626,3 +629,8 @@ class App(QMainWindow):
                     QMessageBox.information(self, '导出完成', f'已导出数据到 {selected_file}')
                 except Exception as e:
                     QMessageBox.warning(self, '导出失败', f'导出时出现错误: {str(e)}')
+
+    def closeEvent(self, event):
+        # 调用 waitForDone() 以等待所有线程结束
+        self.thread_pool.waitForDone()
+        super().closeEvent(event)
