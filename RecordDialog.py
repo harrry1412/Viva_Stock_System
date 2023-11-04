@@ -16,16 +16,22 @@ class RecordDialog(QDialog):
         self.table.setHorizontalHeaderLabels(['型号', '日期', '修改人', '内容'])
         self.table.setRowCount(len(records))
         
+        # 添加记录到表格中
         for i, record in enumerate(records):
             self.table.setItem(i, 0, QTableWidgetItem(record[0]))
-            # 假设 record[1] 是一个 datetime.date 对象
             date_str = record[1].strftime('%Y-%m-%d')  # 将日期转换为字符串
             self.table.setItem(i, 1, QTableWidgetItem(date_str))
             self.table.setItem(i, 2, QTableWidgetItem(record[2]))
             self.table.setItem(i, 3, QTableWidgetItem(record[3]))
         
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 自动调整列宽
-        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 设置表格内容不可编辑
+        # 设置前三列的宽度和最后一列的伸缩策略
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)  # 第四列伸缩填充剩余空间
+        
+        # 设置表格内容不可编辑
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         
         font = QFont()
         font.setPointSize(16)
@@ -38,6 +44,5 @@ class RecordDialog(QDialog):
         
         self.layout.addWidget(self.table)
         self.layout.addWidget(self.close_button)
-
         self.setLayout(self.layout)
         self.rug_id = rug_id
