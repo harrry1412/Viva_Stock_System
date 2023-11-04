@@ -24,6 +24,7 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.thread_pool = QThreadPool()
+        self.thread_pool.setMaxThreadCount(1)
         print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
         self.supplier_list = None
         self.filtered_suppliers = []
@@ -149,6 +150,7 @@ class App(QMainWindow):
             # 填充表格数据
             self.image_loaders.clear()
             for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
+                
                 # Image column
                 image_label = QLabel()
                 image_label.setAlignment(Qt.AlignCenter)
@@ -189,27 +191,19 @@ class App(QMainWindow):
 
                 # Operation buttons column (5th column)
                 edit_button = QPushButton('修改')
-                undo_button = QPushButton('撤销')
-                redo_button = QPushButton('重做')
                 note_button = QPushButton('备注')
                 record_button = QPushButton('记录')
 
-                redo_button.clicked.connect(self.redo_quantity)
                 edit_button.clicked.connect(lambda _, row=i: self.edit_quantity(row))
-                undo_button.clicked.connect(self.undo_quantity)
                 note_button.clicked.connect(lambda _, row=i: self.show_note_dialog(row))
                 record_button.clicked.connect(lambda _, row=i: self.show_record_dialog(row))
 
                 button_container = QWidget()
                 button_layout = QHBoxLayout(button_container)
-                redo_button.setFixedSize(56, 56)
                 edit_button.setFixedSize(56, 56)
-                undo_button.setFixedSize(56, 56)
                 note_button.setFixedSize(56, 56)
                 record_button.setFixedSize(56, 56)
                 button_layout.addWidget(edit_button)
-                #button_layout.addWidget(undo_button)
-                #button_layout.addWidget(redo_button)
                 button_layout.addWidget(note_button)
                 button_layout.addWidget(record_button)
                 button_layout.setContentsMargins(0, 0, 0, 0)
@@ -301,61 +295,6 @@ class App(QMainWindow):
         except mysql.connector.Error as err:
             print(f"Error: {err}")
 
-
-    def undo_quantity(self):
-        if self.undo_stack:
-            # 查找“数量”列的索引
-            quantity_col = None
-            for col in range(self.table_widget.columnCount()):
-                if self.table_widget.horizontalHeaderItem(col).text() == "数量":
-                    quantity_col = col
-                    break
-
-            # 查找“型号”列的索引
-            id_col = None
-            for col in range(self.table_widget.columnCount()):
-                if self.table_widget.horizontalHeaderItem(col).text() == "型号":
-                    id_col = col
-                    break
-
-            # 从undo_stack中弹出数据
-            row, quantity_to_undo = self.undo_stack.pop()
-
-            # 获取当前表格中的数量
-            current_quantity = self.table_widget.item(row, quantity_col).text()
-
-            # 将当前数量放入redo_stack以便我们可以后续重做这个操作
-            self.redo_stack.append((row, current_quantity))
-
-            # 使用之前的数量来更新表格
-            rug_id = self.table_widget.item(row, id_col).text()
-            self.update_quantity(row, rug_id, quantity_to_undo)
-
-
-    def redo_quantity(self):
-        if self.redo_stack:
-            # 查找“数量”列的索引
-            quantity_col = None
-            for col in range(self.table_widget.columnCount()):
-                if self.table_widget.horizontalHeaderItem(col).text() == "数量":
-                    quantity_col = col
-                    break
-
-            # 查找“型号”列的索引
-            id_col = None
-            for col in range(self.table_widget.columnCount()):
-                if self.table_widget.horizontalHeaderItem(col).text() == "型号":
-                    id_col = col
-                    break
-
-            row, quantity_to_redo = self.redo_stack.pop()  # 从重做栈中弹出数据
-            current_quantity = self.table_widget.item(row, quantity_col).text()  # 获取当前数量
-
-            # 将当前数量放回到undo_stack，以便我们可以再次撤销这个操作
-            self.undo_stack.append((row, current_quantity))
-
-            rug_id = self.table_widget.item(row, id_col).text()
-            self.update_quantity(row, rug_id, quantity_to_redo)
 
     def show_note_dialog(self, row):
         id_col = None
@@ -560,15 +499,7 @@ class App(QMainWindow):
                 self.populate_table()
 
     def add_product_to_database(self, product_data):
-        try:
-            conn = self.db_manager.connect()
-            cursor = conn.cursor()
-            insert_query = "INSERT INTO rug (qty, supplier, note, image, id) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(insert_query, product_data)
-            conn.commit()
-            conn.close()
-        except mysql.connector.Error as err:
-            print(f"Error inserting product: {err}")
+        self.db_manager.insert_product(product_data)
 
     def export_to_excel(self):
         export_dialog = QFileDialog(self)
