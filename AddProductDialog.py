@@ -92,7 +92,7 @@ class AddProductDialog(QDialog):
         for image_path in image_paths:
             _, ext = os.path.splitext(image_path)
             model = self.model_input.text().strip()
-            new_image_name = f"D:/Harry/imgs/{model}{ext}"
+            new_image_name = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
             shutil.copy(image_path, new_image_name)
             return new_image_name
 

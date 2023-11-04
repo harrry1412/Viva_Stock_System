@@ -120,3 +120,14 @@ class DatabaseManager:
         cursor.execute(insert_query, (record_id, date, user, content))
         conn.commit()
         conn.close()
+
+    def insert_product(self, product_data):
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            insert_query = "INSERT INTO rug (qty, supplier, note, image, id) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(insert_query, product_data)
+            conn.commit()
+            conn.close()
+        except mysql.connector.Error as err:
+            print(f"Error inserting product: {err}")
