@@ -4,10 +4,10 @@ import openpyxl
 import mysql.connector
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLabel,
-    QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox
+    QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication
 )
 from PyQt5.QtGui import QPixmap, QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 from DatabaseManager import DatabaseManager
 from EditQuantityDialog import EditQuantityDialog
@@ -562,7 +562,32 @@ class App(QMainWindow):
                 except Exception as e:
                     QMessageBox.warning(self, '导出失败', f'导出时出现错误: {str(e)}')
 
+    '''
     def closeEvent(self, event):
         # 调用 waitForDone() 以等待所有线程结束
         self.thread_pool.waitForDone()
         super().closeEvent(event)
+    '''
+    def closeEvent(self, event):
+        # 隐藏窗口而不是关闭
+        self.hide()
+        # 你可以选择在此处通知用户程序将继续运行
+        # 直到所有线程完成
+        # ...
+
+        # 不要在这里等待线程完成
+        # 改为让应用程序在退出前自动处理线程完成
+
+        # 让事件继续传播，以便窗口关闭操作继续
+        event.ignore()
+
+        # 启动一个定时器，定期检查线程池是否空闲，如果是，则退出应用程序
+        self.shutdown_timer = QTimer(self)  # 创建一个新的定时器
+        self.shutdown_timer.start(1000)  # 设置定时器每秒触发一次
+        self.shutdown_timer.timeout.connect(self.checkThreadPool)
+
+    def checkThreadPool(self):
+        if self.thread_pool.activeThreadCount() == 0:
+            # 线程完成了，可以安全退出了
+            QApplication.quit()
+        # 否则定时器会再次触发并检查线程
