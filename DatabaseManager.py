@@ -5,6 +5,23 @@ from mysql.connector import pooling
 
 
 class DatabaseManager:
+    '''
+    def __init__(self):
+        config = configparser.ConfigParser()
+        config.read('mysql.txt')
+        self.host = config.get('database', 'host')
+        self.user = config.get('database', 'user')
+        self.password = config.get('database', 'password')
+        self.database = config.get('database', 'database')
+
+    def connect(self):
+        return mysql.connector.connect(
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database
+        )
+    '''
     def __init__(self):
         config = configparser.ConfigParser()
         config.read('mysql.txt')
@@ -15,7 +32,7 @@ class DatabaseManager:
             'database': config.get('database', 'database')
         }
         self.pool_name = 'mypool'
-        self.pool_size = 5  # 这是连接池中连接的数量
+        self.pool_size = 1  # 这是连接池中连接的数量
         self.pool = pooling.MySQLConnectionPool(pool_name=self.pool_name,
                                                 pool_size=self.pool_size,
                                                 **self.database_config)
@@ -60,6 +77,8 @@ class DatabaseManager:
         conn.close()
         return rows
 
+
+    
     def fetch_records(self, id):
         conn = self.connect()
         cursor = conn.cursor()
@@ -101,14 +120,3 @@ class DatabaseManager:
         cursor.execute(insert_query, (record_id, date, user, content))
         conn.commit()
         conn.close()
-
-    def insert_product(self, product_data):
-        try:
-            conn = self.connect()
-            cursor = conn.cursor()
-            insert_query = "INSERT INTO rug (qty, supplier, note, image, id) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(insert_query, product_data)
-            conn.commit()
-            conn.close()
-        except mysql.connector.Error as err:
-            print(f"Error inserting product: {err}")
