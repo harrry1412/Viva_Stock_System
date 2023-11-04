@@ -73,8 +73,8 @@ class AddProductDialog(QDialog):
 
         self.setLayout(self.layout)
 
-        self.selected_image_path = None
-        self.new_image_path = None
+        self.selected_image_path = ''
+        self.new_image_path = ''
     '''
     def select_image(self):
         options = QFileDialog.Options()
@@ -109,7 +109,9 @@ class AddProductDialog(QDialog):
             
 
     def copy_images_to_folder(self):
-        shutil.copy(self.selected_image_path, self.new_image_path)
+        # 如果任一路径为None，方法不执行任何操作
+        if self.selected_image_path != '' and self.new_image_path != '':
+            shutil.copy(self.selected_image_path, self.new_image_path)
 
     def get_product_data(self):
         model = self.model_input.text().strip()  # 获取型号输入框的文本内容
@@ -117,11 +119,17 @@ class AddProductDialog(QDialog):
         supplier = self.supplier_input.text().strip()  # 获取供货商输入框的文本内容
         note = self.note_input.toPlainText().strip()  # 获取备注输入框的文本内容
 
+        # 检查型号和数量是否为空
         if not model or not quantity:
             QMessageBox.warning(self, '警告', '型号和数量不能为空')
             return None
 
+        # 检查型号是否已存在
+        if self.parent().db_manager.id_exists(model):
+            QMessageBox.warning(self, '警告', '型号已经存在')
+            return None
+
         image_path = self.new_image_path  # 获取新的图片路径
 
-        return (quantity, supplier, note, image_path, model)
+        return (model, quantity, supplier, note, image_path)
     
