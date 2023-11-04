@@ -488,7 +488,7 @@ class App(QMainWindow):
         QMessageBox.warning(self, title, message)
 
 
-
+    '''
     def show_add_product_dialog(self):
         add_product_dialog = AddProductDialog(self)
         result = add_product_dialog.exec_()
@@ -497,9 +497,25 @@ class App(QMainWindow):
             if product_data:
                 self.add_product_to_database(product_data)
                 self.populate_table()
-
+    '''
+    def show_add_product_dialog(self):
+        add_product_dialog = AddProductDialog(self)
+        result = add_product_dialog.exec_()
+        if result == QDialog.Accepted:
+            product_data = add_product_dialog.get_product_data()
+            if product_data:
+                # 注意，此处我们不再直接复制图片，而是传递图片路径给数据库添加函数
+                success = self.add_product_to_database(product_data)
+                if success:
+                    # 数据库添加成功，现在可以复制图片
+                    add_product_dialog.copy_images_to_folder()
+                self.populate_table()
+    
     def add_product_to_database(self, product_data):
-        self.db_manager.insert_product(product_data)
+        success=self.db_manager.insert_product(product_data)
+        return success
+
+
 
     def export_to_excel(self):
         export_dialog = QFileDialog(self)

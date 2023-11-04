@@ -74,7 +74,8 @@ class AddProductDialog(QDialog):
         self.setLayout(self.layout)
 
         self.selected_image_path = None
-
+        self.new_image_path = None
+    '''
     def select_image(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
@@ -87,14 +88,28 @@ class AddProductDialog(QDialog):
 
         if file_paths:
             self.selected_image_path = self.copy_images_to_folder(file_paths)
+    '''
+    def select_image(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+        file_dialog = QFileDialog()
+        file_dialog.setOptions(options)
+        file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg *.bmp *.gif)")
+        file_dialog.setViewMode(QFileDialog.List)
+        file_dialog.setFileMode(QFileDialog.ExistingFiles)
+        file_paths, _ = file_dialog.getOpenFileNames(self, '选择图片', '', 'Images (*.png *.jpg *.jpeg *.bmp *.gif)')
 
-    def copy_images_to_folder(self, image_paths):
-        for image_path in image_paths:
-            _, ext = os.path.splitext(image_path)
+        if file_paths:
+            # 我们只保存第一张图片的路径，您可以根据需求来调整
+            self.selected_image_path = file_paths[0] # 假设我们只处理第一个选中的文件
+            # 生成新文件名
+            _, ext = os.path.splitext(self.selected_image_path)
             model = self.model_input.text().strip()
-            new_image_name = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
-            shutil.copy(image_path, new_image_name)
-            return new_image_name
+            self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
+            
+
+    def copy_images_to_folder(self):
+        shutil.copy(self.selected_image_path, self.new_image_path)
 
     def get_product_data(self):
         model = self.model_input.text().strip()  # 获取型号输入框的文本内容
@@ -106,6 +121,7 @@ class AddProductDialog(QDialog):
             QMessageBox.warning(self, '警告', '型号和数量不能为空')
             return None
 
-        image_path = self.selected_image_path  # 获取已选择的图片路径
+        image_path = self.new_image_path  # 获取新的图片路径
 
         return (quantity, supplier, note, image_path, model)
+    

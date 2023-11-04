@@ -121,6 +121,7 @@ class DatabaseManager:
         conn.commit()
         conn.close()
 
+    '''
     def insert_product(self, product_data):
         try:
             conn = self.connect()
@@ -131,3 +132,19 @@ class DatabaseManager:
             conn.close()
         except mysql.connector.Error as err:
             print(f"Error inserting product: {err}")
+    '''        
+    def insert_product(self, product_data):
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            insert_query = "INSERT INTO rug (qty, supplier, note, image, id) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(insert_query, product_data)  # Directly pass the product_data tuple
+            conn.commit()
+            return True  # Return True to indicate success
+        except mysql.connector.Error as err:
+            print(f"Error inserting product: {err}")
+            return False  # Return False to indicate failure
+        finally:
+            if conn.is_connected():
+                conn.close()
+
