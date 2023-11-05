@@ -11,6 +11,8 @@ class ImageLoader(QRunnable):
     def __init__(self, image_path, index):
         super().__init__()
         self.image_path = image_path
+        if(image_path is None):
+            self.image_path=''
         self.index = index
         self.signals = ImageLoaderSignals()
 

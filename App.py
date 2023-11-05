@@ -156,7 +156,6 @@ class App(QMainWindow):
                 image_label.setAlignment(Qt.AlignCenter)
                 self.table_widget.setCellWidget(i, 0, image_label)
 
-                print(image_path)
                 loader = ImageLoader(image_path, i)
                 loader.signals.image_loaded.connect(self.set_thumbnail)
                 # self.image_loaders.append(loader)  # 不需要保存引用

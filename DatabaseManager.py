@@ -134,6 +134,9 @@ class DatabaseManager:
             print(f"Error inserting product: {err}")
     '''        
     def insert_product(self, product_data):
+        for data in product_data:
+            if(data is None):
+                data=''
         try:
             conn = self.connect()
             cursor = conn.cursor()
