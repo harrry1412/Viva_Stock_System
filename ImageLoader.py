@@ -10,9 +10,11 @@ class ImageLoader(QRunnable):
 
     def __init__(self, image_path, index):
         super().__init__()
-        self.image_path = image_path
+        path='\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
         if(image_path is None):
             self.image_path=''
+        else:
+            self.image_path = path+image_path
         self.index = index
         self.signals = ImageLoaderSignals()
 

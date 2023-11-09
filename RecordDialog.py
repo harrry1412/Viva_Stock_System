@@ -13,7 +13,7 @@ class RecordDialog(QDialog):
         self.layout = QVBoxLayout()
         self.table = QTableWidget()
         self.table.setColumnCount(4)  # 假设有四列数据
-        self.table.setHorizontalHeaderLabels(['型号', '日期', '修改人', '内容'])
+        self.table.setHorizontalHeaderLabels(['型号', '开单日期', '修改人', '内容'])
         self.table.setRowCount(len(records))
         
         # 添加记录到表格中

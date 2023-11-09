@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QPushButton, QLineEdit, QHBoxLayout, QMessageBox, QLabel
+    QDialog, QVBoxLayout, QPushButton, QLineEdit, QHBoxLayout, QMessageBox, QLabel, QDateEdit
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QDate
 
 
 class EditQuantityDialog(QDialog):
@@ -10,7 +11,7 @@ class EditQuantityDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle('编辑数量')
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.setFixedSize(400, 225)
+        self.setFixedSize(400, 300)
         self.layout = QVBoxLayout()
 
         input_layout = QHBoxLayout()
@@ -21,6 +22,11 @@ class EditQuantityDialog(QDialog):
         # 添加记录文本输入框
         self.record_label=QLabel('调货细节/原因：')
         self.record_input = QLineEdit()
+        # 添加日期编辑器
+        self.date_label = QLabel('开单日期：')
+        self.date_input = QDateEdit()
+        self.date_input.setCalendarPopup(True)  # 允许弹出日历来选择日期
+        self.date_input.setDate(QDate.currentDate())  # 设置日期编辑器的日期为当前日期
 
         font = QFont()
         font.setPointSize(16)
@@ -29,6 +35,9 @@ class EditQuantityDialog(QDialog):
         self.increment_button.setFont(font)
         self.record_label.setFont(font)
         self.record_input.setFont(font)
+        self.date_input.setCalendarPopup(True)
+        self.date_label.setFont(font)
+        self.date_input.setFont(font)
         
 
         button_size = 40  # 设置按钮的宽度和高度
@@ -40,9 +49,14 @@ class EditQuantityDialog(QDialog):
         input_layout.addWidget(self.new_quantity_input)
         input_layout.addWidget(self.increment_button)
 
+
         self.layout.addLayout(input_layout)
+        # 将日期选择器添加到布局中
+        self.layout.addWidget(self.date_label)
+        self.layout.addWidget(self.date_input)
         self.layout.addWidget(self.record_label)
         self.layout.addWidget(self.record_input)
+
 
         self.ok_button = QPushButton('确认')
         self.cancel_button = QPushButton('取消')
@@ -69,6 +83,10 @@ class EditQuantityDialog(QDialog):
 
     def get_record(self):
         return self.record_input.text()
+    
+    def get_selected_date(self):
+        # 返回一个 QDate 对象，转换为字符串格式
+        return self.date_input.date().toString(Qt.ISODate)
 
     def increment_quantity(self):
         current_quantity = int(self.new_quantity_input.text())
@@ -83,11 +101,13 @@ class EditQuantityDialog(QDialog):
     def save_changes(self):
         new_quantity = self.get_new_quantity()
         record = self.get_record()
+        selected_date = self.date_input.date().toString(Qt.ISODate)  # 获取日期字符串格式
 
         if record:
             # 在这里保存更改或同步到数据库
             print(f"保存数量更改: {new_quantity}")
             print(f"记录: {record}")
+            print(f"选择的日期: {selected_date}")  # 打印选择的日期
             self.accept()
         else:
             QMessageBox.warning(self, '警告', '记录不能为空')

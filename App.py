@@ -263,16 +263,18 @@ class App(QMainWindow):
         self.redo_stack.clear()
 
         dialog = EditQuantityDialog(self)
-        dialog.new_quantity_input.setText(current_quantity)
+        dialog.new_quantity_input.setText(str(current_quantity))  # 确保传入的是字符串
         result = dialog.exec_()
         if result == QDialog.Accepted:
             new_quantity = dialog.get_new_quantity()
-            record=dialog.get_record()
-            record=current_quantity+"->"+new_quantity+": "+record
+            record = dialog.get_record()
+            selected_date = dialog.get_selected_date()  # 获取选择的日期
+            # 构造新的记录字符串，包括日期
+            record = f"{selected_date} {current_quantity} -> {new_quantity}: {record}"
             rug_id = self.table_widget.item(row, id_col).text()
-            user=self.user
+            user = self.user
             self.update_quantity(row, rug_id, new_quantity)
-            self.db_manager.insert_record(rug_id, user, record)
+            self.db_manager.insert_record(rug_id, user, record, selected_date)  # 假设 insert_record 方法接受日期作为参数
 
     def update_quantity(self, row, rug_id, new_quantity):
         # 查找“数量”列的索引

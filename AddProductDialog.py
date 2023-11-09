@@ -75,6 +75,7 @@ class AddProductDialog(QDialog):
 
         self.selected_image_path = ''
         self.new_image_path = ''
+        self.image_name=''
     '''
     def select_image(self):
         options = QFileDialog.Options()
@@ -106,12 +107,17 @@ class AddProductDialog(QDialog):
             _, ext = os.path.splitext(self.selected_image_path)
             model = self.model_input.text().strip()
             self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
+            self.image_name = os.path.basename(self.new_image_path)
             
 
     def copy_images_to_folder(self):
         # 如果任一路径为None，方法不执行任何操作
         if self.selected_image_path != '' and self.new_image_path != '':
+            print(self.selected_image_path)
+            print(self.new_image_path)
             shutil.copy(self.selected_image_path, self.new_image_path)
+
+    from PyQt5.QtWidgets import QMessageBox
 
     def get_product_data(self):
         model = self.model_input.text().strip()  # 获取型号输入框的文本内容
@@ -124,12 +130,19 @@ class AddProductDialog(QDialog):
             QMessageBox.warning(self, '警告', '型号和数量不能为空')
             return None
 
+        # 检查数量是否为整数
+        if not quantity.isdigit():
+            QMessageBox.warning(self, '错误', '数量必须是一个整数')
+            return None
+
         # 检查型号是否已存在
         if self.parent().db_manager.id_exists(model):
             QMessageBox.warning(self, '警告', '型号已经存在')
             return None
 
-        image_path = self.new_image_path  # 获取新的图片路径
+        image = self.image_name  # 假设 self.image_name 已经是前面代码中定义的
 
-        return (model, quantity, supplier, note, image_path)
+        # 一切检查通过后，返回产品数据
+        return (model, int(quantity), supplier, note, image)
+
     

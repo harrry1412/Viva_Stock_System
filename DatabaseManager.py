@@ -112,8 +112,7 @@ class DatabaseManager:
         conn.commit()
         conn.close()
 
-    def insert_record(self, record_id, user, content):
-        date=datetime.now()
+    def insert_record(self, record_id, user, content, date):
         conn = self.connect()
         cursor = conn.cursor()
         insert_query = "INSERT INTO record (id, dat, usr, content) value (%s, %s, %s, %s)"
