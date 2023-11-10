@@ -270,7 +270,7 @@ class App(QMainWindow):
             record = dialog.get_record()
             selected_date = dialog.get_selected_date()  # 获取选择的日期
             # 构造新的记录字符串，包括日期
-            record = f"{selected_date} {current_quantity} -> {new_quantity}: {record}"
+            record = f"{current_quantity} -> {new_quantity}: {record}"
             rug_id = self.table_widget.item(row, id_col).text()
             user = self.user
             self.update_quantity(row, rug_id, new_quantity)
