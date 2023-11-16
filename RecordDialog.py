@@ -8,7 +8,7 @@ class RecordDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle('记录')
         self.setWindowFlags(self.windowFlags() | Qt.WindowMinMaxButtonsHint)
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1200, 800)
 
         self.layout = QVBoxLayout()
         self.table = QTableWidget()

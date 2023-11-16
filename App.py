@@ -154,7 +154,6 @@ class App(QMainWindow):
                 # Image column
                 image_label = QLabel()
                 image_label.setAlignment(Qt.AlignCenter)
-                image_label.setStyleSheet("background-color: #d3d3d3;")  # 更浅的灰色
                 self.table_widget.setCellWidget(i, 0, image_label)
 
                 loader = ImageLoader(image_path, i)

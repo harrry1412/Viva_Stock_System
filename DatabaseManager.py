@@ -51,7 +51,7 @@ class DatabaseManager:
     def fetch_rugs(self):
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, qty, supplier, note, image FROM rug order by supplier, id ASC")
+        cursor.execute("SELECT id, qty, supplier, note, image FROM rug order by supplier, sort, id ASC")
         rows = cursor.fetchall()
         conn.close()
         return rows
