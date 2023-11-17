@@ -1,9 +1,10 @@
 import os
+import sys
 import shutil
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QPlainTextEdit, QFileDialog, QMessageBox
 )
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 
 
@@ -12,6 +13,10 @@ class AddProductDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('新增产品')
+        if getattr(sys, 'frozen', False):
+            self.setWindowIcon(QIcon(sys._MEIPASS + '/vivastock.ico'))
+        else:
+            self.setWindowIcon(QIcon('vivastock.ico'))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setFixedSize(600, 600)  # 设置对话框的大小
         self.layout = QVBoxLayout()

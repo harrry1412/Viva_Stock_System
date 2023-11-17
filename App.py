@@ -1,12 +1,12 @@
 from PyQt5.QtCore import QThreadPool
-import os
+import sys
 import openpyxl
 import mysql.connector
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLabel,
     QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication
 )
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QTimer
 
 from DatabaseManager import DatabaseManager
@@ -43,6 +43,12 @@ class App(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle(self.title)
+
+        if getattr(sys, 'frozen', False):
+            self.setWindowIcon(QIcon(sys._MEIPASS + '/vivastock.ico'))
+        else:
+            self.setWindowIcon(QIcon('vivastock.ico'))
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()

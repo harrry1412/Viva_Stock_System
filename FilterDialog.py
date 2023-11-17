@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QCheckBox, QPushButton, QScrollArea, QWidget
+    QDialog, QVBoxLayout, QCheckBox, QPushButton, QScrollArea, QWidget
 )
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, pyqtSignal
-import mysql.connector
+import sys
 
 class FilterDialog(QDialog):
     filterApplied = pyqtSignal(list)
@@ -11,6 +11,10 @@ class FilterDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('筛选供货商')
+        if getattr(sys, 'frozen', False):
+            self.setWindowIcon(QIcon(sys._MEIPASS + '/vivastock.ico'))
+        else:
+            self.setWindowIcon(QIcon('vivastock.ico'))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         # self.setFixedSize(200, 250)  # 不再设置固定大小
         self.resize(300, 400)  # 初始大小，但用户可以调整

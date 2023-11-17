@@ -82,7 +82,7 @@ class DatabaseManager:
     def fetch_records(self, id):
         conn = self.connect()
         cursor = conn.cursor()
-        query="SELECT id, dat, usr, content FROM record WHERE id=%s"
+        query="SELECT id, dat, usr, content FROM record WHERE id=%s order by dat DESC"
         cursor.execute(query, (id,))
         rows = cursor.fetchall()
         conn.close()

@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QPushButton, QLineEdit, QHBoxLayout, QMessageBox, QLabel, QDateEdit
 )
-from PyQt5.QtGui import QFont
+import sys
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QDate
 
@@ -10,6 +11,10 @@ class EditQuantityDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('编辑数量')
+        if getattr(sys, 'frozen', False):
+            self.setWindowIcon(QIcon(sys._MEIPASS + '/vivastock.ico'))
+        else:
+            self.setWindowIcon(QIcon('vivastock.ico'))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setFixedSize(400, 300)
         self.layout = QVBoxLayout()

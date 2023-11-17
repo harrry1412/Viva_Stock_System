@@ -1,5 +1,6 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+import sys
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QPushButton, QTableWidget,
                              QTableWidgetItem, QHeaderView, QAbstractItemView)
 
@@ -7,6 +8,10 @@ class RecordDialog(QDialog):
     def __init__(self, parent=None, rug_id="", records=[]):
         super().__init__(parent)
         self.setWindowTitle('记录')
+        if getattr(sys, 'frozen', False):
+            self.setWindowIcon(QIcon(sys._MEIPASS + '/vivastock.ico'))
+        else:
+            self.setWindowIcon(QIcon('vivastock.ico'))
         self.setWindowFlags(self.windowFlags() | Qt.WindowMinMaxButtonsHint)
         self.setMinimumSize(1200, 800)
 
