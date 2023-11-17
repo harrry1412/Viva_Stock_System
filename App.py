@@ -18,6 +18,7 @@ from AddProductDialog import AddProductDialog
 from LoginDialog import LoginDialog
 from OrderDialog import OrderDialog
 from ImageLoader import ImageLoader
+from DataFetcher import DataFetcher
 
 
 class App(QMainWindow):
@@ -133,7 +134,7 @@ class App(QMainWindow):
             self.supplier_list = self.db_manager.fetch_supplier()
         return self.supplier_list
 
-
+    '''
     def populate_table(self):
         try:
             # 获取所有数据行
@@ -164,7 +165,6 @@ class App(QMainWindow):
 
                 loader = ImageLoader(image_path, i)
                 loader.signals.image_loaded.connect(self.set_thumbnail)
-                # self.image_loaders.append(loader)  # 不需要保存引用
                 self.thread_pool.start(loader)  # 使用线程池启动任务
 
                 # ID column
@@ -220,6 +220,84 @@ class App(QMainWindow):
 
         except mysql.connector.Error as err:
             print(f"Error: {err}")
+    '''
+    def populate_table(self):
+        try:
+            fetcher = DataFetcher(self.db_manager, self.order_key, self.order_direction, self.filtered_suppliers)
+            fetcher.signals.finished.connect(self.on_data_fetched)
+            fetcher.signals.error.connect(self.on_data_fetch_error)
+            self.thread_pool.start(fetcher)
+        except Exception as e:
+            print(f"Error: {e}")
+
+    def on_data_fetched(self, filtered_rows):
+        self.table_widget.setRowCount(len(filtered_rows))
+        self.table_widget.verticalHeader().setVisible(False)
+
+        for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
+            # Image column
+            image_label = QLabel()
+            image_label.setAlignment(Qt.AlignCenter)
+            self.table_widget.setCellWidget(i, 0, image_label)
+
+            loader = ImageLoader(image_path, i)
+            loader.signals.image_loaded.connect(self.set_thumbnail)
+            self.thread_pool.start(loader)  # 使用线程池启动任务
+
+            # ID column
+            self.table_widget.setItem(i, 1, QTableWidgetItem(str(id)))
+            font = self.table_widget.item(i, 1).font()
+            font.setPointSize(14)
+            self.table_widget.item(i, 1).setFont(font)
+            self.table_widget.item(i, 1).setTextAlignment(Qt.AlignCenter)
+            item = self.table_widget.item(i, 1)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+
+            # Supplier column
+            supplier_item = QTableWidgetItem(supplier)
+            supplier_item.setFont(font)
+            supplier_item.setTextAlignment(Qt.AlignCenter)
+            self.table_widget.setItem(i, 2, supplier_item)
+
+            # Quantity column
+            qty_item = QTableWidgetItem(str(qty))
+            qty_item.setFlags(qty_item.flags() & ~Qt.ItemIsEditable)
+            qty_item.setFont(font)
+            qty_item.setTextAlignment(Qt.AlignCenter)
+            self.table_widget.setItem(i, 3, qty_item)
+
+            # Remark column
+            note_item = QTableWidgetItem(note)
+            note_item.setFont(font)
+            note_item.setTextAlignment(Qt.AlignCenter)
+            self.table_widget.setItem(i, 4, note_item)
+
+            # Operation buttons column
+            edit_button = QPushButton('修改')
+            note_button = QPushButton('备注')
+            record_button = QPushButton('记录')
+
+            edit_button.clicked.connect(lambda _, row=i: self.edit_quantity(row))
+            note_button.clicked.connect(lambda _, row=i: self.show_note_dialog(row))
+            record_button.clicked.connect(lambda _, row=i: self.show_record_dialog(row))
+
+            button_container = QWidget()
+            button_layout = QHBoxLayout(button_container)
+            edit_button.setFixedSize(56, 56)
+            note_button.setFixedSize(56, 56)
+            record_button.setFixedSize(56, 56)
+            button_layout.addWidget(edit_button)
+            button_layout.addWidget(note_button)
+            button_layout.addWidget(record_button)
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_container.setLayout(button_layout)
+            self.table_widget.setCellWidget(i, 5, button_container)
+
+            self.table_widget.setRowHeight(i, 110)
+
+    def on_data_fetch_error(self, error_message):
+        print(f"Data fetch error: {error_message}")
+
 
     def set_thumbnail(self, index, thumbnail):
         image_label = self.table_widget.cellWidget(index, 0)
