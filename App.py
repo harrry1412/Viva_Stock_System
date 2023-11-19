@@ -223,6 +223,9 @@ class App(QMainWindow):
     '''
     def populate_table(self):
         try:
+            # 将滚动条移动到最上面
+            self.table_widget.verticalScrollBar().setValue(0)
+
             fetcher = DataFetcher(self.db_manager, self.order_key, self.order_direction, self.filtered_suppliers)
             fetcher.signals.finished.connect(self.on_data_fetched)
             fetcher.signals.error.connect(self.on_data_fetch_error)
