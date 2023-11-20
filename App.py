@@ -588,6 +588,11 @@ class App(QMainWindow):
                 self.populate_table()
     '''
     def show_add_product_dialog(self):
+        # 首先检测全局变量logged是否为1
+        if self.logged != 1:
+            QMessageBox.warning(self, '警告', '您未登录，无法添加新品！')
+            return
+
         add_product_dialog = AddProductDialog(self)
         result = add_product_dialog.exec_()
         if result == QDialog.Accepted:
