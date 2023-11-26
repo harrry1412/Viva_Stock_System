@@ -1,11 +1,16 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QMessageBox, QLabel
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
+import sys
 
 class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('登录')
+        if getattr(sys, 'frozen', False):
+            self.setWindowIcon(QIcon(sys._MEIPASS + '/vivastock.ico'))
+        else:
+            self.setWindowIcon(QIcon('vivastock.ico'))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setFixedSize(400, 225)
         self.layout = QVBoxLayout()
