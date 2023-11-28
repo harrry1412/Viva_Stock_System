@@ -41,7 +41,8 @@ class OrderDialog(QDialog):
         self.order_direction_group = QButtonGroup(self)
         self.asc_rbtn = QRadioButton('升序')
         self.desc_rbtn = QRadioButton('降序')
-        self.asc_rbtn.setChecked(True)  # 默认设置为升序
+        self.quantity_rbtn.setChecked(True) # 默认设置为数量排序
+        self.desc_rbtn.setChecked(True)  # 默认设置为升序
 
         self.asc_rbtn.setFont(font)
         self.desc_rbtn.setFont(font)

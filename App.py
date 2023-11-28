@@ -46,6 +46,7 @@ class App(QMainWindow):
         self.user='Guest'
         self.table_widget.cellDoubleClicked.connect(self.show_full_size_image)
         self.image_paths = {}  # 添加字典来存储图片路径
+        self.last_search = ""
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -407,20 +408,30 @@ class App(QMainWindow):
         if not search_text:
             return
 
-        matched_rows = []
-        for row in range(self.table_widget.rowCount()):
-            for col in range(self.table_widget.columnCount()):
-                item = self.table_widget.item(row, col)
-                if item and search_text in item.text().lower():
-                    matched_rows.append(row)
-                    break
-
-        if matched_rows:
-            self.search_results = matched_rows
-            self.current_result_index = 0
-            self.show_current_result()
+        # 检查当前搜索关键词是否与上一次搜索的关键词相同
+        if search_text == self.last_search:
+            # 如果有搜索结果，并且当前关键词未变，则跳转到下一个搜索结果
+            if self.search_results:
+                self.show_next_result()
+                return
         else:
-            print("No results found.")
+            # 如果当前关键词与上次不同，则执行新的搜索
+            self.last_search = search_text
+            matched_rows = []
+            for row in range(self.table_widget.rowCount()):
+                for col in range(self.table_widget.columnCount()):
+                    item = self.table_widget.item(row, col)
+                    if item and search_text in item.text().lower():
+                        matched_rows.append(row)
+                        break
+
+            if matched_rows:
+                self.search_results = matched_rows
+                self.current_result_index = 0
+                self.show_current_result()
+            else:
+                print("No results found.")
+
 
 
     def show_current_result(self):
