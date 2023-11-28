@@ -19,6 +19,7 @@ from LoginDialog import LoginDialog
 from OrderDialog import OrderDialog
 from ImageLoader import ImageLoader
 from DataFetcher import DataFetcher
+from ImageLable import ImageLabel
 
 
 class App(QMainWindow):
@@ -27,7 +28,7 @@ class App(QMainWindow):
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
-        self.full_size_image_thread_pool.setMaxThreadCount(2)  # 例如设置为2
+        self.full_size_image_thread_pool.setMaxThreadCount(2) 
         print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
         self.supplier_list = None
         self.filtered_suppliers = []
@@ -157,7 +158,7 @@ class App(QMainWindow):
             self.image_window.setWindowTitle("图片预览")
 
             layout = QVBoxLayout(self.image_window)
-            label = QLabel()
+            label = ImageLabel()
             label.setPixmap(pixmap)
             layout.addWidget(label)
 

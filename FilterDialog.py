@@ -69,4 +69,3 @@ class FilterDialog(QDialog):
         else:
             self.filterApplied.emit([])
         self.close()
-
