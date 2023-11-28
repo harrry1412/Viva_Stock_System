@@ -4,7 +4,7 @@ import openpyxl
 import mysql.connector
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLabel,
-    QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication
+    QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QTimer, QSize
@@ -427,7 +427,7 @@ class App(QMainWindow):
         if not self.search_results:
             return
         row = self.search_results[self.current_result_index]
-        self.table_widget.scrollToItem(self.table_widget.item(row, 0))
+        self.table_widget.scrollTo(self.table_widget.model().index(row, 0), QAbstractItemView.PositionAtTop)
         self.table_widget.clearSelection()
         self.table_widget.selectRow(row)
 
