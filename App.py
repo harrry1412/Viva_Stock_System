@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication
 )
 from PyQt5.QtGui import QFont, QIcon
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QSize
 
 from DatabaseManager import DatabaseManager
 from EditQuantityDialog import EditQuantityDialog
@@ -26,6 +26,8 @@ class App(QMainWindow):
         super().__init__()
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
+        self.full_size_image_thread_pool = QThreadPool()
+        self.full_size_image_thread_pool.setMaxThreadCount(2)  # 例如设置为2
         print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
         self.supplier_list = None
         self.filtered_suppliers = []
@@ -41,6 +43,8 @@ class App(QMainWindow):
         self.current_result_index = 0
         self.logged=0
         self.user='Guest'
+        self.table_widget.cellDoubleClicked.connect(self.show_full_size_image)
+        self.image_paths = {}  # 添加字典来存储图片路径
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -129,98 +133,44 @@ class App(QMainWindow):
 
         self.show()
 
+    def make_full_image_path(self, image_file_name):
+        base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
+        return base_path + image_file_name if image_file_name else None
+
     def get_suppliers(self):
         if self.supplier_list is None:
             self.supplier_list = self.db_manager.fetch_supplier()
         return self.supplier_list
 
-    '''
-    def populate_table(self):
-        try:
-            # 获取所有数据行
-            if(self.order_key=='none'):
-                rows = self.db_manager.fetch_rugs()
-            else:
-                rows=self.db_manager.fetch_ordered_rugs(self.order_key, self.order_direction)
-        
+    def show_full_size_image(self, row, column):
+        if column == 0:
+            image_path = self.get_full_image_path_from_row(row)
+            if image_path:
+                loader = ImageLoader(image_path, row, thumbnail=False)
+                loader.signals.image_loaded.connect(self.display_full_size_image)
+                self.full_size_image_thread_pool.start(loader)  # 使用新的线程池
 
-            # 根据筛选条件过滤数据
-            filtered_rows = []
-            for id, qty, supplier, note, image_path in rows:
-                if not self.filtered_suppliers or supplier in self.filtered_suppliers:
-                    filtered_rows.append((id, qty, supplier, note, image_path))
 
-            # 设置表格行数
-            self.table_widget.setRowCount(len(filtered_rows))
-            self.table_widget.verticalHeader().setVisible(False)
+    def display_full_size_image(self, row, pixmap):
+        if not pixmap.isNull():
+            self.image_window = QDialog(self)
+            self.image_window.setWindowTitle("图片预览")
 
-            # 填充表格数据
-            self.image_loaders.clear()
-            for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
-                
-                # Image column
-                image_label = QLabel()
-                image_label.setAlignment(Qt.AlignCenter)
-                self.table_widget.setCellWidget(i, 0, image_label)
+            layout = QVBoxLayout(self.image_window)
+            label = QLabel()
+            label.setPixmap(pixmap)
+            layout.addWidget(label)
 
-                loader = ImageLoader(image_path, i)
-                loader.signals.image_loaded.connect(self.set_thumbnail)
-                self.thread_pool.start(loader)  # 使用线程池启动任务
+            self.image_window.resize(pixmap.size())
+            self.image_window.exec_()
 
-                # ID column
-                self.table_widget.setItem(i, 1, QTableWidgetItem(str(id)))
-                font = self.table_widget.item(i, 1).font()
-                font.setPointSize(14)
-                self.table_widget.item(i, 1).setFont(font)
-                self.table_widget.item(i, 1).setTextAlignment(Qt.AlignCenter)
-                item = self.table_widget.item(i, 1)
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+    def get_full_image_path_from_row(self, row):
+        if row in self.image_paths:
+            return self.image_paths[row]
+        return None
 
-                # Supplier column
-                supplier_item = QTableWidgetItem(supplier)
-                supplier_item.setFont(font)
-                supplier_item.setTextAlignment(Qt.AlignCenter)
-                self.table_widget.setItem(i, 2, supplier_item)
 
-                # Quantity column
-                qty_item = QTableWidgetItem(str(qty))
-                qty_item.setFlags(qty_item.flags() & ~Qt.ItemIsEditable)
-                qty_item.setFont(font)
-                qty_item.setTextAlignment(Qt.AlignCenter)
-                self.table_widget.setItem(i, 3, qty_item)
 
-                # Remark column
-                note_item = QTableWidgetItem(note)
-                note_item.setFont(font)
-                note_item.setTextAlignment(Qt.AlignCenter)
-                self.table_widget.setItem(i, 4, note_item)
-
-                # Operation buttons column (5th column)
-                edit_button = QPushButton('修改')
-                note_button = QPushButton('备注')
-                record_button = QPushButton('记录')
-
-                edit_button.clicked.connect(lambda _, row=i: self.edit_quantity(row))
-                note_button.clicked.connect(lambda _, row=i: self.show_note_dialog(row))
-                record_button.clicked.connect(lambda _, row=i: self.show_record_dialog(row))
-
-                button_container = QWidget()
-                button_layout = QHBoxLayout(button_container)
-                edit_button.setFixedSize(56, 56)
-                note_button.setFixedSize(56, 56)
-                record_button.setFixedSize(56, 56)
-                button_layout.addWidget(edit_button)
-                button_layout.addWidget(note_button)
-                button_layout.addWidget(record_button)
-                button_layout.setContentsMargins(0, 0, 0, 0)
-                button_container.setLayout(button_layout)
-                self.table_widget.setCellWidget(i, 5, button_container)  # 设置为第5列
-
-                self.table_widget.setRowHeight(i, 110)
-
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-    '''
     def populate_table(self):
         try:
             # 将滚动条移动到最上面
@@ -234,18 +184,22 @@ class App(QMainWindow):
             print(f"Error: {e}")
 
     def on_data_fetched(self, filtered_rows):
+        self.image_paths = {}
         self.table_widget.setRowCount(len(filtered_rows))
-        self.table_widget.verticalHeader().setVisible(False)
 
         for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
+            full_image_path = self.make_full_image_path(image_path)
+            self.image_paths[i] = full_image_path
+
             # Image column
             image_label = QLabel()
             image_label.setAlignment(Qt.AlignCenter)
             self.table_widget.setCellWidget(i, 0, image_label)
 
-            loader = ImageLoader(image_path, i)
-            loader.signals.image_loaded.connect(self.set_thumbnail)
-            self.thread_pool.start(loader)  # 使用线程池启动任务
+            if full_image_path:
+                loader = ImageLoader(full_image_path, i)
+                loader.signals.image_loaded.connect(self.set_thumbnail)
+                self.thread_pool.start(loader)
 
             # ID column
             self.table_widget.setItem(i, 1, QTableWidgetItem(str(id)))
