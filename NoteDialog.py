@@ -37,7 +37,8 @@ class NoteDialog(QDialog):
         button_layout = QHBoxLayout()
         self.save_button.setFixedSize(100, 56)
         self.cancel_button.setFixedSize(100, 56)
-        button_layout.addWidget(self.save_button)
+        if (logged==1):
+            button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.cancel_button)
         self.layout.addLayout(button_layout)
 
