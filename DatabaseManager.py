@@ -119,19 +119,7 @@ class DatabaseManager:
         cursor.execute(insert_query, (record_id, date, user, content))
         conn.commit()
         conn.close()
-
-    '''
-    def insert_product(self, product_data):
-        try:
-            conn = self.connect()
-            cursor = conn.cursor()
-            insert_query = "INSERT INTO rug (qty, supplier, note, image, id) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(insert_query, product_data)
-            conn.commit()
-            conn.close()
-        except mysql.connector.Error as err:
-            print(f"Error inserting product: {err}")
-    '''        
+  
     def insert_product(self, product_data):
         for data in product_data:
             if(data is None):
@@ -164,4 +152,19 @@ class DatabaseManager:
             return False
         finally:
             conn.close()
+
+    def fetch_records_for_rug(self, id):
+        conn = self.connect()
+        cursor = conn.cursor()
+
+        # 编写 SQL 查询，用于获取与特定 rug_id 相关联的记录
+        query = "SELECT dat, content FROM record WHERE id = %s ORDER BY dat DESC"
+        cursor.execute(query, (id,))
+
+        # 获取查询结果
+        records = cursor.fetchall()
+        print(records)
+
+        conn.close()
+        return records
 

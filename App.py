@@ -113,8 +113,8 @@ class App(QMainWindow):
 
 
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(6)  # 增加1，以包括备注列
-        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "供货商", "数量", "备注", "操作"])
+        self.table_widget.setColumnCount(7)  #总列数
+        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "供货商", "数量", "备注", "记录", "操作"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.populate_table()
         self.layout.addWidget(self.table_widget)
@@ -189,7 +189,7 @@ class App(QMainWindow):
         self.image_paths = {}
         self.table_widget.setRowCount(len(filtered_rows))
 
-        for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
+        for i, (id, qty, supplier, note, image_path, record) in enumerate(filtered_rows):
             full_image_path = self.make_full_image_path(image_path)
             self.image_paths[i] = full_image_path
 
@@ -231,6 +231,16 @@ class App(QMainWindow):
             note_item.setTextAlignment(Qt.AlignCenter)
             self.table_widget.setItem(i, 4, note_item)
 
+            # Record column
+            record_item = QTableWidgetItem(record)
+            # 设置较小的字体
+            font = record_item.font()  # 获取当前的字体设置
+            font.setPointSize(12)  # 将字体大小设置为10
+            record_item.setFont(font)  # 应用新的字体设置
+            # 设置左对齐
+            record_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            self.table_widget.setItem(i, 5, record_item)
+
             # Operation buttons column
             edit_button = QPushButton('修改')
             note_button = QPushButton('备注')
@@ -250,7 +260,7 @@ class App(QMainWindow):
             button_layout.addWidget(record_button)
             button_layout.setContentsMargins(0, 0, 0, 0)
             button_container.setLayout(button_layout)
-            self.table_widget.setCellWidget(i, 5, button_container)
+            self.table_widget.setCellWidget(i, 6, button_container)
 
             self.table_widget.setRowHeight(i, 110)
 
