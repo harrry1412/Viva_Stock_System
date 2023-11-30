@@ -26,7 +26,7 @@ class DataFetcher(QRunnable):
                 if not self.filtered_suppliers or supplier in self.filtered_suppliers:
                     # 获取与该产品相关的记录
                     records = self.db_manager.fetch_records_for_rug(id)  # 假设这个方法返回了所需的记录数据
-                    record_str = "; ".join([f"{dat}: {content}" for dat, content in records])
+                    record_str = "\n".join([f"{dat}: {content}" for dat, content in records])
                     extended_row = row + (record_str,)  # 将记录数据作为字符串附加到行数据中
                     filtered_rows_with_records.append(extended_row)
 
