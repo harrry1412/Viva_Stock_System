@@ -163,7 +163,6 @@ class DatabaseManager:
 
         # 获取查询结果
         records = cursor.fetchall()
-        print(records)
 
         conn.close()
         return records

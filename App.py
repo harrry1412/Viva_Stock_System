@@ -19,6 +19,7 @@ from LoginDialog import LoginDialog
 from OrderDialog import OrderDialog
 from ImageLoader import ImageLoader
 from DataFetcher import DataFetcher
+from RecordLoader import RecordLoader
 from ImageLable import ImageLabel
 
 
@@ -28,7 +29,9 @@ class App(QMainWindow):
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
-        self.full_size_image_thread_pool.setMaxThreadCount(2) 
+        self.full_size_image_thread_pool.setMaxThreadCount(1) 
+        self.record_thread_pool = QThreadPool()
+        self.record_thread_pool.setMaxThreadCount(1)
         print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
         self.supplier_list = None
         self.filtered_suppliers = []
@@ -172,7 +175,7 @@ class App(QMainWindow):
         return None
 
 
-
+    '''
     def populate_table(self):
         try:
             # 将滚动条移动到最上面
@@ -184,12 +187,22 @@ class App(QMainWindow):
             self.thread_pool.start(fetcher)
         except Exception as e:
             print(f"Error: {e}")
+    '''
+    def populate_table(self):
+        # 将滚动条移动到最上面
+        self.table_widget.verticalScrollBar().setValue(0)
+
+        # 创建并启动 DataFetcher
+        fetcher = DataFetcher(self.db_manager, self.order_key, self.order_direction, self.filtered_suppliers)
+        fetcher.signals.finished.connect(self.on_data_fetched)
+        fetcher.signals.error.connect(self.on_data_fetch_error)
+        self.thread_pool.start(fetcher)
 
     def on_data_fetched(self, filtered_rows):
         self.image_paths = {}
         self.table_widget.setRowCount(len(filtered_rows))
 
-        for i, (id, qty, supplier, note, image_path, record) in enumerate(filtered_rows):
+        for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
             full_image_path = self.make_full_image_path(image_path)
             self.image_paths[i] = full_image_path
 
@@ -231,6 +244,7 @@ class App(QMainWindow):
             note_item.setTextAlignment(Qt.AlignCenter)
             self.table_widget.setItem(i, 4, note_item)
 
+            '''
             # Record column
             record_item = QTableWidgetItem(record)
             # 设置较小的字体
@@ -240,6 +254,14 @@ class App(QMainWindow):
             # 设置左对齐
             record_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
             self.table_widget.setItem(i, 5, record_item)
+            '''
+            # 初始化记录列为 "加载中..."
+            self.table_widget.setItem(i, 5, QTableWidgetItem("加载中..."))
+
+            # 启动记录加载
+            record_loader = RecordLoader(self.db_manager, id, i)
+            record_loader.signals.records_loaded.connect(self.set_record_data)
+            self.record_thread_pool.start(record_loader)
 
             # Operation buttons column
             edit_button = QPushButton('修改')
@@ -267,6 +289,9 @@ class App(QMainWindow):
     def on_data_fetch_error(self, error_message):
         print(f"Data fetch error: {error_message}")
 
+    def set_record_data(self, row_number, record_data):
+        # 当记录数据加载完成时更新表格
+        self.table_widget.setItem(row_number, 5, QTableWidgetItem(record_data))
 
     def set_thumbnail(self, index, thumbnail):
         image_label = self.table_widget.cellWidget(index, 0)
