@@ -32,7 +32,7 @@ class DatabaseManager:
             'database': config.get('database', 'database')
         }
         self.pool_name = 'mypool'
-        self.pool_size = 1  # 这是连接池中连接的数量
+        self.pool_size = 5  # 这是连接池中连接的数量
         self.pool = pooling.MySQLConnectionPool(pool_name=self.pool_name,
                                                 pool_size=self.pool_size,
                                                 **self.database_config)
