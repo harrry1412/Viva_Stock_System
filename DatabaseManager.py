@@ -82,7 +82,7 @@ class DatabaseManager:
     def fetch_records(self, id):
         conn = self.connect()
         cursor = conn.cursor()
-        query="SELECT id, dat, usr, content FROM record WHERE id=%s order by dat DESC"
+        query="SELECT id, dat, usr, content, bef, aft FROM record WHERE id=%s order by dat DESC"
         cursor.execute(query, (id,))
         rows = cursor.fetchall()
         conn.close()
@@ -112,13 +112,22 @@ class DatabaseManager:
         conn.commit()
         conn.close()
 
-    def insert_record(self, record_id, user, content, date):
+    def insert_record(self, record_id, user, content, bef, aft, date):
         conn = self.connect()
         cursor = conn.cursor()
-        insert_query = "INSERT INTO record (id, dat, usr, content) value (%s, %s, %s, %s)"
-        cursor.execute(insert_query, (record_id, date, user, content))
+        # 请确保下面的SQL语句中的列名与您数据库中的列名相匹配
+        insert_query = """
+        INSERT INTO record (id, usr, content, bef, aft, dat) 
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        # 执行插入操作
+        cursor.execute(insert_query, (record_id, user, content, bef, aft, date))
+        # 提交更改
         conn.commit()
+        # 关闭连接
+        cursor.close()
         conn.close()
+
   
     def insert_product(self, product_data):
         for data in product_data:
@@ -158,7 +167,7 @@ class DatabaseManager:
         cursor = conn.cursor()
 
         # 编写 SQL 查询，用于获取与特定 rug_id 相关联的记录
-        query = "SELECT dat, content FROM record WHERE id = %s ORDER BY dat DESC"
+        query = "SELECT dat, content, bef, aft FROM record WHERE id = %s ORDER BY dat DESC"
         cursor.execute(query, (id,))
 
         # 获取查询结果

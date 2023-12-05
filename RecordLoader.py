@@ -14,7 +14,9 @@ class RecordLoader(QRunnable):
     def run(self):
         try:
             records = self.db_manager.fetch_records_for_rug(self.rug_id)
-            record_str = "\n".join([f"{date}: {content}" for date, content in records])
+            #record_str = "\n".join([f"{date}: {content}" for date, content in records])
+            record_str = "\n".join([f"{date}: {'+' if aft > bef else ''}{aft - bef}" for date, content, bef, aft in records])
+            #record_str='RRREC'
             self.signals.records_loaded.emit(self.row_number, record_str)
         except Exception as e:
             # 可以添加错误处理逻辑

@@ -244,17 +244,6 @@ class App(QMainWindow):
             note_item.setTextAlignment(Qt.AlignCenter)
             self.table_widget.setItem(i, 4, note_item)
 
-            '''
-            # Record column
-            record_item = QTableWidgetItem(record)
-            # 设置较小的字体
-            font = record_item.font()  # 获取当前的字体设置
-            font.setPointSize(12)  # 将字体大小设置为10
-            record_item.setFont(font)  # 应用新的字体设置
-            # 设置左对齐
-            record_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-            self.table_widget.setItem(i, 5, record_item)
-            '''
             # 初始化记录列为 "加载中..."
             self.table_widget.setItem(i, 5, QTableWidgetItem("加载中..."))
 
@@ -290,8 +279,20 @@ class App(QMainWindow):
         print(f"Data fetch error: {error_message}")
 
     def set_record_data(self, row_number, record_data):
-        # 当记录数据加载完成时更新表格
-        self.table_widget.setItem(row_number, 5, QTableWidgetItem(record_data))
+        # 创建新的表格项
+        record_item = QTableWidgetItem(record_data)
+
+        # 设置字体
+        font = record_item.font()  # 获取当前的字体设置
+        font.setPointSize(14)      # 设置字体大小
+        record_item.setFont(font)  # 应用新的字体设置
+
+        # 设置文本对齐方式
+        record_item.setTextAlignment(Qt.AlignCenter)
+
+        # 将表格项添加到表格的相应行和列
+        self.table_widget.setItem(row_number, 5, record_item)
+
 
     def set_thumbnail(self, index, thumbnail):
         image_label = self.table_widget.cellWidget(index, 0)
@@ -346,13 +347,15 @@ class App(QMainWindow):
         if result == QDialog.Accepted:
             new_quantity = dialog.get_new_quantity()
             record = dialog.get_record()
+            bef=current_quantity
+            aft=new_quantity
             selected_date = dialog.get_selected_date()  # 获取选择的日期
             # 构造新的记录字符串，包括日期
-            record = f"{current_quantity} -> {new_quantity}: {record}"
+            # record = f"{current_quantity} -> {new_quantity}: {record}"
             rug_id = self.table_widget.item(row, id_col).text()
             user = self.user
             self.update_quantity(row, rug_id, new_quantity)
-            self.db_manager.insert_record(rug_id, user, record, selected_date)  # 假设 insert_record 方法接受日期作为参数
+            self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date)  # 假设 insert_record 方法接受日期作为参数
 
     def update_quantity(self, row, rug_id, new_quantity):
         # 查找“数量”列的索引

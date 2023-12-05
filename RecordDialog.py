@@ -30,7 +30,7 @@ class RecordDialog(QDialog):
             date_str = record[1].strftime('%Y-%m-%d')  # 将日期转换为字符串
             self.table.setItem(i, 1, QTableWidgetItem(date_str))
             self.table.setItem(i, 2, QTableWidgetItem(record[2]))
-            self.table.setItem(i, 3, QTableWidgetItem(record[3]))
+            self.table.setItem(i, 3, QTableWidgetItem(f"{record[4]} -> {record[5]}: {record[3]}"))
             self.table.resizeRowToContents(i)  # 调整行高以适应内容
 
         # 设置前三列的宽度和最后一列的伸缩策略
