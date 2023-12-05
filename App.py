@@ -134,6 +134,22 @@ class App(QMainWindow):
         self.login_button.clicked.connect(self.clickLogin)
         self.order_button.clicked.connect(self.show_order_dialog)
 
+        # 获取表的水平表头
+        header = self.table_widget.horizontalHeader()
+
+        # 设置所有列为可伸缩模式
+        header.setSectionResizeMode(QHeaderView.Stretch)
+
+        # 假设您想为第一列（图片）和最后一列（操作按钮）设置为可交互模式
+
+        header.setSectionResizeMode(1, QHeaderView.Interactive)
+        header.resizeSection(1, 300)
+        header.setSectionResizeMode(2, QHeaderView.Interactive)
+        header.resizeSection(2, 150)
+        header.setSectionResizeMode(3, QHeaderView.Interactive)
+
+
+
         self.showMaximized()  # 最大化窗口
 
         self.show()
@@ -175,19 +191,6 @@ class App(QMainWindow):
         return None
 
 
-    '''
-    def populate_table(self):
-        try:
-            # 将滚动条移动到最上面
-            self.table_widget.verticalScrollBar().setValue(0)
-
-            fetcher = DataFetcher(self.db_manager, self.order_key, self.order_direction, self.filtered_suppliers)
-            fetcher.signals.finished.connect(self.on_data_fetched)
-            fetcher.signals.error.connect(self.on_data_fetch_error)
-            self.thread_pool.start(fetcher)
-        except Exception as e:
-            print(f"Error: {e}")
-    '''
     def populate_table(self):
         # 将滚动条移动到最上面
         self.table_widget.verticalScrollBar().setValue(0)
