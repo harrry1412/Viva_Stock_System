@@ -1,7 +1,9 @@
 from PyQt5.QtCore import QThreadPool
 import sys
+import os
 import openpyxl
 import mysql.connector
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLabel,
     QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView
@@ -55,9 +57,16 @@ class App(QMainWindow):
         self.setWindowTitle(self.title)
 
         if getattr(sys, 'frozen', False):
-            self.setWindowIcon(QIcon(sys._MEIPASS + '/vivastock.ico'))
+            # 打包后的情况
+            application_path = sys._MEIPASS
         else:
-            self.setWindowIcon(QIcon('vivastock.ico'))
+            # 从源代码运行的情况
+            application_path = os.path.dirname(os.path.abspath(__file__))
+
+        icon_path = os.path.join(application_path, 'vivastock.ico')
+
+        # 设置窗口图标
+        self.setWindowIcon(QtGui.QIcon(icon_path))
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
