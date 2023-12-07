@@ -519,7 +519,6 @@ class App(QMainWindow):
 
 
     def clickLogin(self):
-        print(self.logged)
         if (self.logged==1):
             self.logout()
         else:
@@ -542,7 +541,6 @@ class App(QMainWindow):
         logout_message_box.exec_()
 
     def show_login_dialog(self):
-        print('Login Dialog')
         login_dialog = LoginDialog(self)
         result = login_dialog.exec_()
         if result == QDialog.Accepted:
@@ -553,6 +551,9 @@ class App(QMainWindow):
                     self.login_successful(username)
                 else:
                     self.show_error_message('登录失败', '用户名或密码错误!')
+            else:
+                self.show_error_message('登录失败', '用户名或密码错误!')
+
 
     def verify_login(self, username, password):
         # 在这里添加验证用户名和密码的逻辑
@@ -569,7 +570,7 @@ class App(QMainWindow):
         self.welcome_label.setText('Welcome '+username)
         self.login_button.setText('登出')
         self.logged=1
-
+        '''
         # 创建一个消息框
         logout_message_box = QMessageBox()
         logout_message_box.setIcon(QMessageBox.Information)
@@ -579,6 +580,7 @@ class App(QMainWindow):
         
         # 显示消息框
         logout_message_box.exec_()
+        '''
 
     def show_error_message(self, title, message):
         QMessageBox.warning(self, title, message)
