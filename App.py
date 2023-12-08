@@ -73,7 +73,7 @@ class App(QMainWindow):
         self.layout = QVBoxLayout()
 
         search_layout = QHBoxLayout()
-        self.search_label = QLabel('搜索型号:')
+        self.search_label = QLabel('搜索:')
         self.search_input = QLineEdit()
         self.search_button = QPushButton('搜索')
         self.prev_result_button = QPushButton('上一个')
