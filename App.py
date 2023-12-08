@@ -156,6 +156,7 @@ class App(QMainWindow):
         header.setSectionResizeMode(2, QHeaderView.Interactive)
         header.resizeSection(2, 150)
         header.setSectionResizeMode(3, QHeaderView.Interactive)
+        header.resizeSection(3, 100)
 
 
 
@@ -366,15 +367,21 @@ class App(QMainWindow):
             # record = f"{current_quantity} -> {new_quantity}: {record}"
             rug_id = self.table_widget.item(row, id_col).text()
             user = self.user
+            
+            self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date)
             self.update_quantity(row, rug_id, new_quantity)
-            self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date)  # 假设 insert_record 方法接受日期作为参数
 
     def update_quantity(self, row, rug_id, new_quantity):
         # 查找“数量”列的索引
         quantity_col = None
+        record_col = None
         for col in range(self.table_widget.columnCount()):
             if self.table_widget.horizontalHeaderItem(col).text() == "数量":
                 quantity_col = col
+                break
+        for col in range(self.table_widget.columnCount()):
+            if self.table_widget.horizontalHeaderItem(col).text() == "记录":
+                record_col = col
                 break
 
         # 如果没有找到“数量”列，返回或抛出一个错误
@@ -386,9 +393,16 @@ class App(QMainWindow):
             self.db_manager.update_rug_quantity(rug_id, new_quantity)
             item = self.table_widget.item(row, quantity_col)
             item.setText(str(new_quantity))
-            # self.previous_quantities[row] = self.table_widget.item(row, quantity_col).text()
         except mysql.connector.Error as err:
             print(f"Error: {err}")
+        try:
+            records = self.db_manager.fetch_records_for_rug(rug_id)
+            record_str = "\n".join([f"{date}: {'+' if aft > bef else ''}{aft - bef}" for date, content, bef, aft in records])
+            item = self.table_widget.item(row, record_col)
+            item.setText(str(record_str))
+        except Exception as e:
+            # 可以添加错误处理逻辑
+            pass
 
 
     def show_note_dialog(self, row):
