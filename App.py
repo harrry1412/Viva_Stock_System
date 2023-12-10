@@ -53,6 +53,8 @@ class App(QMainWindow):
         self.image_paths = {}  # 添加字典来存储图片路径
         self.last_search = ""
         self.image_loaders = []  # 用于存储 ImageLoader 实例
+        self.sorting_states = {}  # 添加属性来保存默认行顺序
+        self.sorting_states = {1: 'default', 2: 'default', 3: 'default'} # 初始化排序状态为默认
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -159,11 +161,38 @@ class App(QMainWindow):
         header.setSectionResizeMode(3, QHeaderView.Interactive)
         header.resizeSection(3, 100)
 
+        # 启用表格排序
+        self.table_widget.horizontalHeader().sectionClicked.connect(self.onHeaderClicked)
+
 
 
         self.showMaximized()  # 最大化窗口
 
         self.show()
+
+    def onHeaderClicked(self, logicalIndex):
+        # 检查被点击的列是否是可排序的列
+        if logicalIndex in [1, 2, 3]:  # 假设这些列的索引是 1, 2, 3
+            # '型号', '供货商', '数量' 列的排序键
+            order_keys = {1: 'id', 2: 'supplier', 3: 'qty'}
+
+            # 获取当前列的排序键
+            order_key = order_keys[logicalIndex]
+
+            # 检查当前列的排序状态，并切换到下一个状态
+            if self.sorting_states.get(logicalIndex) == 'DESC':
+                # 如果当前是降序，切换到升序
+                self.apply_order(order_key, 'ASC')
+                self.sorting_states[logicalIndex] = 'ASC'
+            elif self.sorting_states.get(logicalIndex) == 'ASC':
+                # 如果当前是升序，恢复默认顺序
+                self.restoreOrder()
+                self.sorting_states[logicalIndex] = 'default'
+            else:
+                # 如果当前是默认顺序或未设置，切换到降序
+                self.apply_order(order_key, 'DESC')
+                self.sorting_states[logicalIndex] = 'DESC'
+
 
     def make_full_image_path(self, image_file_name):
         base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
@@ -528,21 +557,28 @@ class App(QMainWindow):
         filter_dialog.exec_()
 
     def apply_supplier_filter(self, selected_suppliers):
-        # 取消所有正在进行的图片加载
-        for loader in self.image_loaders:
-            loader.cancel()
+        if (selected_suppliers == []):
+            self.filtered_suppliers=[]
+            self.resetApplication()
+        else:
+            # 取消所有正在进行的图片加载
+            for loader in self.image_loaders:
+                loader.cancel()
 
-        # 清空现有的 ImageLoader 实例列表
-        self.image_loaders.clear()
-
-        # 应用筛选并重新填充表格
-        self.filtered_suppliers = selected_suppliers
-        self.populate_table()
+            # 清空现有的 ImageLoader 实例列表
+            self.image_loaders.clear()
+            # 应用筛选并重新填充表格
+            self.filtered_suppliers = selected_suppliers
+            self.populate_table()
 
     def show_order_dialog(self):
         order_dialog=OrderDialog(self)
         order_dialog.orderApplied.connect(self.apply_order)
+        order_dialog.orderRestored.connect(self.restoreOrder)
         order_dialog.exec_()
+
+    def restoreOrder(self):
+        self.resetApplication()
 
     def apply_order(self, selected_order_key, order_direction):
         # 取消所有正在进行的图片加载
@@ -551,7 +587,7 @@ class App(QMainWindow):
 
         # 清空现有的 ImageLoader 实例列表
         self.image_loaders.clear()
-        
+
         self.order_key=selected_order_key
         self.order_direction=order_direction
         self.populate_table()
@@ -572,12 +608,24 @@ class App(QMainWindow):
         # 创建一个消息框
         logout_message_box = QMessageBox()
         logout_message_box.setIcon(QMessageBox.Information)
+
+        # 设置消息框的窗口图标
+        if getattr(sys, 'frozen', False):
+            # 打包后的情况
+            application_path = sys._MEIPASS
+        else:
+            # 从源代码运行的情况
+            application_path = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(application_path, 'vivastock.ico')
+        logout_message_box.setWindowIcon(QIcon(icon_path))
+
         logout_message_box.setText("Logout Successful")
         logout_message_box.setWindowTitle("Logout")
         logout_message_box.setStandardButtons(QMessageBox.Ok)
         
         # 显示消息框
         logout_message_box.exec_()
+
 
     def show_login_dialog(self):
         login_dialog = LoginDialog(self)
@@ -720,12 +768,33 @@ class App(QMainWindow):
                 except Exception as e:
                     QMessageBox.warning(self, '导出失败', f'导出时出现错误: {str(e)}')
 
-    '''
-    def closeEvent(self, event):
-        # 调用 waitForDone() 以等待所有线程结束
-        self.thread_pool.waitForDone()
-        super().closeEvent(event)
-    '''
+    def resetApplication(self):
+        # 停止所有后台线程
+        self.cancelBackgroundTasks()
+
+        # 清除并重置界面元素
+        self.table_widget.clearContents()
+        self.table_widget.setRowCount(0)
+        self.search_input.clear()
+
+        # 重置滚动条位置和其他界面状态
+        self.table_widget.verticalScrollBar().setValue(0)
+
+        # 重新加载数据
+        self.order_key='none'
+        self.populate_table()
+
+    def cancelBackgroundTasks(self):
+        # 停止图片加载器
+        for loader in self.image_loaders:
+            loader.cancel()
+        self.image_loaders.clear()
+
+        # 清除未完成的线程池任务
+        self.thread_pool.clear()
+        self.full_size_image_thread_pool.clear()
+        self.record_thread_pool.clear()
+
     def closeEvent(self, event):
         # 隐藏窗口而不是关闭
         self.hide()

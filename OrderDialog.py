@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 class OrderDialog(QDialog):
     # 定义一个信号，当排序应用时发出，发送排序字段和方向
     orderApplied = pyqtSignal(str, str)
+    orderRestored = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -60,21 +61,29 @@ class OrderDialog(QDialog):
         # 确定和取消按钮
         self.ok_button = QPushButton('确定')
         self.cancel_button = QPushButton('取消')
+        self.restore_button = QPushButton('恢复')
 
         font = QFont()
         font.setPointSize(16)
         self.ok_button.setFont(font)
         self.cancel_button.setFont(font)
+        self.restore_button.setFont(font)
 
         # 将按钮添加到布局中
         self.layout.addWidget(self.ok_button)
         self.layout.addWidget(self.cancel_button)
+        self.layout.addWidget(self.restore_button)
 
         # 连接信号和槽
         self.ok_button.clicked.connect(self.apply_order)
         self.cancel_button.clicked.connect(self.close)
+        self.restore_button.clicked.connect(self.restore)
 
         self.setLayout(self.layout)
+
+    def restore(self):
+        self.orderRestored.emit()
+        self.close()
 
     def apply_order(self):
         # 获取选中的排序字段
