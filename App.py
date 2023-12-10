@@ -545,6 +545,13 @@ class App(QMainWindow):
         order_dialog.exec_()
 
     def apply_order(self, selected_order_key, order_direction):
+        # 取消所有正在进行的图片加载
+        for loader in self.image_loaders:
+            loader.cancel()
+
+        # 清空现有的 ImageLoader 实例列表
+        self.image_loaders.clear()
+        
         self.order_key=selected_order_key
         self.order_direction=order_direction
         self.populate_table()
