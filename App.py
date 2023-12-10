@@ -52,6 +52,7 @@ class App(QMainWindow):
         self.table_widget.cellDoubleClicked.connect(self.show_full_size_image)
         self.image_paths = {}  # 添加字典来存储图片路径
         self.last_search = ""
+        self.image_loaders = []  # 用于存储 ImageLoader 实例
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -228,6 +229,7 @@ class App(QMainWindow):
                 loader = ImageLoader(full_image_path, i)
                 loader.signals.image_loaded.connect(self.set_thumbnail)
                 self.thread_pool.start(loader)
+                self.image_loaders.append(loader)  # 将实例添加到列表中
 
             # ID column
             self.table_widget.setItem(i, 1, QTableWidgetItem(str(id)))
@@ -526,9 +528,16 @@ class App(QMainWindow):
         filter_dialog.exec_()
 
     def apply_supplier_filter(self, selected_suppliers):
+        # 取消所有正在进行的图片加载
+        for loader in self.image_loaders:
+            loader.cancel()
+
+        # 清空现有的 ImageLoader 实例列表
+        self.image_loaders.clear()
+
+        # 应用筛选并重新填充表格
         self.filtered_suppliers = selected_suppliers
         self.populate_table()
-
 
     def show_order_dialog(self):
         order_dialog=OrderDialog(self)
