@@ -104,12 +104,21 @@ class EditQuantityDialog(QDialog):
         self.new_quantity_input.setText(str(new_quantity))
 
     def save_changes(self):
-        new_quantity = self.get_new_quantity()
+        new_quantity_str = self.get_new_quantity()  # 假设这是从某个输入框获取的字符串
         record = self.get_record()
         selected_date = self.date_input.date().toString(Qt.ISODate)  # 获取日期字符串格式
 
-        if record:
-            # 在这里保存更改或同步到数据库
+        # 尝试将 new_quantity 转换为整数
+        try:
+            new_quantity = int(new_quantity_str)
+        except ValueError:
+            # 如果转换失败，显示警告
+            QMessageBox.warning(self, '警告', '数量必须是整数')
+            return  # 退出方法，不再执行后续代码
+
+        # 确保记录不为空
+        if record.strip():  # 检查 record 是否为空或只包含空白
+            # 所有检查通过后保存更改或同步到数据库
             print(f"保存数量更改: {new_quantity}")
             print(f"记录: {record}")
             print(f"选择的日期: {selected_date}")  # 打印选择的日期

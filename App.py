@@ -383,12 +383,6 @@ class App(QMainWindow):
         item = self.table_widget.item(row, quantity_col)
         current_quantity = item.text()
 
-        # 将数据压入previous_quantities堆栈
-        self.undo_stack.append((row, current_quantity))
-
-        # 清空redo_quantities堆栈
-        self.redo_stack.clear()
-
         dialog = EditQuantityDialog(self)
         dialog.new_quantity_input.setText(str(current_quantity))  # 确保传入的是字符串
         result = dialog.exec_()
@@ -427,7 +421,7 @@ class App(QMainWindow):
         try:
             self.db_manager.update_rug_quantity(rug_id, new_quantity)
             item = self.table_widget.item(row, quantity_col)
-            item.setText(str(new_quantity))
+            item.setText(str(int(new_quantity)))
         except mysql.connector.Error as err:
             print(f"Error: {err}")
         try:
