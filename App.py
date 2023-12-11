@@ -23,6 +23,7 @@ from ImageLoader import ImageLoader
 from DataFetcher import DataFetcher
 from RecordLoader import RecordLoader
 from ImageLable import ImageLabel
+from AboutDialog import AboutDialog
 
 
 class App(QMainWindow):
@@ -83,9 +84,10 @@ class App(QMainWindow):
         self.next_result_button = QPushButton('下一个')
         self.filter_button = QPushButton('筛选')
         self.order_button = QPushButton('排序')
-        self.reset_button = QPushButton('恢复')
+        self.reset_button = QPushButton('刷新')
         self.add_button = QPushButton('添加')
         self.export_button = QPushButton('导出')
+        self.about_button = QPushButton('关于')
         self.login_button = QPushButton('登录')
 
         
@@ -103,6 +105,7 @@ class App(QMainWindow):
         self.reset_button.setFont(font)
         self.add_button.setFont(font)
         self.export_button.setFont(font)
+        self.about_button.setFont(font)
         self.login_button.setFont(font)
 
         search_layout.addWidget(self.search_label)
@@ -115,6 +118,7 @@ class App(QMainWindow):
         search_layout.addWidget(self.reset_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
+        #search_layout.addWidget(self.about_button)
         search_layout.addWidget(self.login_button)
         search_layout.addStretch(1)
         search_layout.setContentsMargins(0, 0, 0, 0)
@@ -146,6 +150,7 @@ class App(QMainWindow):
         self.filter_button.clicked.connect(self.show_filter_dialog)  # 连接筛选按钮的点击事件
         self.add_button.clicked.connect(self.show_add_product_dialog)
         self.export_button.clicked.connect(self.export_to_excel)
+        self.about_button.clicked.connect(self.showAboutDialog)
         self.login_button.clicked.connect(self.clickLogin)
         self.order_button.clicked.connect(self.show_order_dialog)
         self.reset_button.clicked.connect(self.resetApplication)
@@ -655,32 +660,11 @@ class App(QMainWindow):
         self.welcome_label.setText('Welcome '+username)
         self.login_button.setText('登出')
         self.logged=1
-        '''
-        # 创建一个消息框
-        logout_message_box = QMessageBox()
-        logout_message_box.setIcon(QMessageBox.Information)
-        logout_message_box.setText("Login Successful \nWelcome "+username)
-        logout_message_box.setWindowTitle("Login")
-        logout_message_box.setStandardButtons(QMessageBox.Ok)
-        
-        # 显示消息框
-        logout_message_box.exec_()
-        '''
 
     def show_error_message(self, title, message):
         QMessageBox.warning(self, title, message)
 
 
-    '''
-    def show_add_product_dialog(self):
-        add_product_dialog = AddProductDialog(self)
-        result = add_product_dialog.exec_()
-        if result == QDialog.Accepted:
-            product_data = add_product_dialog.get_product_data()
-            if product_data:
-                self.add_product_to_database(product_data)
-                self.populate_table()
-    '''
     def show_add_product_dialog(self):
         # 首先检测全局变量logged是否为1
         if self.logged != 1:
@@ -702,6 +686,10 @@ class App(QMainWindow):
     def add_product_to_database(self, product_data):
         success=self.db_manager.insert_product(product_data)
         return success
+    
+    def showAboutDialog(self):
+        about_dialog = AboutDialog(self)
+        about_dialog.exec_()
 
 
 
