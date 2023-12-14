@@ -42,7 +42,7 @@ class App(QMainWindow):
         self.order_key='none'
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
-        self.title = 'Viva仓库库存 - Designed by Harry'
+        self.title = 'Viva仓库库存 V2.4.4 - Designed by Harry'
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []
@@ -550,9 +550,18 @@ class App(QMainWindow):
     def show_next_result(self):
         if not self.search_results:
             return
+
+        # 检查是否已经是最后一个搜索结果
         if self.current_result_index < len(self.search_results) - 1:
+            # 如果不是，移动到下一个结果
             self.current_result_index += 1
-            self.show_current_result()
+        else:
+            # 如果是，回到第一个结果
+            self.current_result_index = 0
+        
+        # 显示当前结果
+        self.show_current_result()
+
 
     def show_filter_dialog(self):
         filter_dialog = FilterDialog(self)

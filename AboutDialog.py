@@ -15,11 +15,11 @@ class AboutDialog(QDialog):
         self.resize(800, 600)
 
         about_text = (
-            "软件名称: 你的软件\n"
-            "版本: 1.0.0\n"
-            "作者: 你的名字\n"
-            "版权: © 2023 你的名字\n"
-            "描述: 这是我的软件，用于......"
+            "Viva Stock Management System / Viva大仓库库存管理系统\n"
+            "版本: 2.4.4\n"
+            "作者: Harry\n"
+            "版权: © 2023 Haochu Chen\n"
+            "描述: Viva库存管理系统，旨在管理并规范化所有增减库存的活动，使得记录清晰易读可追踪。"
         )
 
         label = QLabel(about_text, self)
