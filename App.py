@@ -30,6 +30,7 @@ from ClickableLineEdit import ClickableLineEdit
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.version='V2.8.4'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -43,7 +44,7 @@ class App(QMainWindow):
         self.order_key='none'
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
-        self.title = 'Viva仓库库存 V2.6.4 - Designed by Harry'
+        self.title = f'Viva仓库库存 {self.version} - Designed by Harry'
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []
@@ -119,7 +120,7 @@ class App(QMainWindow):
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
-        #search_layout.addWidget(self.about_button)
+        search_layout.addWidget(self.about_button)
         search_layout.addWidget(self.login_button)
         search_layout.addStretch(1)
         search_layout.setContentsMargins(0, 0, 0, 0)
@@ -184,7 +185,6 @@ class App(QMainWindow):
     
 
     def on_search_input_clicked(self):
-        print('Search Bar Clicked')
         self.search_input.selectAll()  # 选中所有文本
 
     def onHeaderClicked(self, logicalIndex):
@@ -526,6 +526,10 @@ class App(QMainWindow):
             matched_rows = []
             for row in range(self.table_widget.rowCount()):
                 for col in range(self.table_widget.columnCount()):
+                    # 跳过“记录”列的搜索
+                    if col == 5:  # 假设“记录”列是第六列，索引为5
+                        continue
+                    
                     item = self.table_widget.item(row, col)
                     if item and search_text in item.text().lower():
                         matched_rows.append(row)
@@ -537,7 +541,6 @@ class App(QMainWindow):
                 self.show_current_result()
             else:
                 print("No results found.")
-
 
 
     def show_current_result(self):
@@ -705,7 +708,7 @@ class App(QMainWindow):
         return success
     
     def showAboutDialog(self):
-        about_dialog = AboutDialog(self)
+        about_dialog = AboutDialog(self, self.version)
         about_dialog.exec_()
 
 
