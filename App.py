@@ -24,6 +24,7 @@ from DataFetcher import DataFetcher
 from RecordLoader import RecordLoader
 from ImageLable import ImageLabel
 from AboutDialog import AboutDialog
+from ClickableLineEdit import ClickableLineEdit
 
 
 class App(QMainWindow):
@@ -78,7 +79,7 @@ class App(QMainWindow):
 
         search_layout = QHBoxLayout()
         self.search_label = QLabel('搜索:')
-        self.search_input = QLineEdit()
+        self.search_input = ClickableLineEdit()  # 使用自定义的 ClickableLineEdit
         self.search_button = QPushButton('搜索')
         self.prev_result_button = QPushButton('上一个')
         self.next_result_button = QPushButton('下一个')
@@ -145,6 +146,7 @@ class App(QMainWindow):
 
         self.search_button.clicked.connect(self.search_item)
         self.search_input.returnPressed.connect(self.search_item)
+        self.search_input.clicked.connect(self.on_search_input_clicked)  # 连接信号到槽函数
         self.prev_result_button.clicked.connect(self.show_previous_result)
         self.next_result_button.clicked.connect(self.show_next_result)
         self.filter_button.clicked.connect(self.show_filter_dialog)  # 连接筛选按钮的点击事件
@@ -178,6 +180,12 @@ class App(QMainWindow):
         self.showMaximized()  # 最大化窗口
 
         self.show()
+
+    
+
+    def on_search_input_clicked(self):
+        print('Search Bar Clicked')
+        self.search_input.selectAll()  # 选中所有文本
 
     def onHeaderClicked(self, logicalIndex):
         # 检查被点击的列是否是可排序的列
