@@ -43,7 +43,7 @@ class App(QMainWindow):
         self.order_key='none'
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
-        self.title = 'Viva仓库库存 V2.4.4 - Designed by Harry'
+        self.title = 'Viva仓库库存 V2.6.4 - Designed by Harry'
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []

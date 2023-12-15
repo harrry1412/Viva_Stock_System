@@ -16,7 +16,7 @@ class AboutDialog(QDialog):
 
         about_text = (
             "Viva Stock Management System / Viva大仓库库存管理系统\n"
-            "版本: 2.4.4\n"
+            "版本: 2.6.4\n"
             "作者: Harry\n"
             "版权: © 2023 Haochu Chen\n"
             "描述: Viva库存管理系统，旨在管理并规范化所有增减库存的活动，使得记录清晰易读可追踪。"
