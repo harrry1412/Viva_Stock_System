@@ -84,7 +84,7 @@ class App(QMainWindow):
         self.next_result_button = QPushButton('下一个')
         self.filter_button = QPushButton('筛选')
         self.order_button = QPushButton('排序')
-        self.reset_button = QPushButton('刷新')
+        self.refresh_button = QPushButton('刷新')
         self.add_button = QPushButton('添加')
         self.export_button = QPushButton('导出')
         self.about_button = QPushButton('关于')
@@ -102,7 +102,7 @@ class App(QMainWindow):
         self.next_result_button.setFont(font)
         self.filter_button.setFont(font)
         self.order_button.setFont(font)
-        self.reset_button.setFont(font)
+        self.refresh_button.setFont(font)
         self.add_button.setFont(font)
         self.export_button.setFont(font)
         self.about_button.setFont(font)
@@ -115,7 +115,7 @@ class App(QMainWindow):
         search_layout.addWidget(self.next_result_button)
         search_layout.addWidget(self.filter_button)  # 将筛选按钮添加到布局中
         search_layout.addWidget(self.order_button)
-        search_layout.addWidget(self.reset_button)
+        search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
         #search_layout.addWidget(self.about_button)
@@ -153,7 +153,7 @@ class App(QMainWindow):
         self.about_button.clicked.connect(self.showAboutDialog)
         self.login_button.clicked.connect(self.clickLogin)
         self.order_button.clicked.connect(self.show_order_dialog)
-        self.reset_button.clicked.connect(self.resetApplication)
+        self.refresh_button.clicked.connect(self.refreshWindow)
 
         # 获取表的水平表头
         header = self.table_widget.horizontalHeader()
@@ -762,6 +762,10 @@ class App(QMainWindow):
                     QMessageBox.information(self, '导出完成', f'已导出数据到 {selected_file}')
                 except Exception as e:
                     QMessageBox.warning(self, '导出失败', f'导出时出现错误: {str(e)}')
+    
+    def refreshWindow(self):
+        self.filtered_suppliers=[]
+        self.resetApplication()
 
     def resetApplication(self):
         # 停止所有后台线程
