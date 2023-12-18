@@ -176,8 +176,6 @@ class App(QMainWindow):
         # 启用表格排序
         self.table_widget.horizontalHeader().sectionClicked.connect(self.onHeaderClicked)
 
-
-
         self.showMaximized()  # 最大化窗口
 
         self.show()
@@ -288,6 +286,7 @@ class App(QMainWindow):
 
             # Supplier column
             supplier_item = QTableWidgetItem(supplier)
+            supplier_item.setFlags(supplier_item.flags() & ~Qt.ItemIsEditable)
             supplier_item.setFont(font)
             supplier_item.setTextAlignment(Qt.AlignCenter)
             self.table_widget.setItem(i, 2, supplier_item)
@@ -299,14 +298,17 @@ class App(QMainWindow):
             qty_item.setTextAlignment(Qt.AlignCenter)
             self.table_widget.setItem(i, 3, qty_item)
 
-            # Remark column
+            # Note column
             note_item = QTableWidgetItem(note)
+            note_item.setFlags(note_item.flags() & ~Qt.ItemIsEditable)
             note_item.setFont(font)
             note_item.setTextAlignment(Qt.AlignCenter)
             self.table_widget.setItem(i, 4, note_item)
 
-            # 初始化记录列为 "加载中..."
-            self.table_widget.setItem(i, 5, QTableWidgetItem("加载中..."))
+            # Record column
+            record_item = QTableWidgetItem("加载中...")
+            record_item.setFlags(record_item.flags() & ~Qt.ItemIsEditable)
+            self.table_widget.setItem(i, 5, record_item)
 
             # 启动记录加载
             record_loader = RecordLoader(self.db_manager, id, i)
@@ -342,6 +344,7 @@ class App(QMainWindow):
     def set_record_data(self, row_number, record_data):
         # 创建新的表格项
         record_item = QTableWidgetItem(record_data)
+        record_item.setFlags(record_item.flags() & ~Qt.ItemIsEditable)
 
         # 设置字体
         font = record_item.font()  # 获取当前的字体设置
