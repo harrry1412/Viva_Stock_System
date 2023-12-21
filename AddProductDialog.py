@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QPlainTextEdit, QFileDialog, QMessageBox
+    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QPlainTextEdit, QFileDialog, QMessageBox, QComboBox
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
@@ -25,43 +25,64 @@ class AddProductDialog(QDialog):
         font = QFont()
         font.setPointSize(16)
 
+        # 初始化各个标签和输入框
         self.model_label = QLabel('型号:')
         self.quantity_label = QLabel('数量:')
         self.supplier_label = QLabel('供货商:')
+        self.category_label = QLabel('产品类别:')  # 新增产品类别标签
         self.note_label = QLabel('备注:')
         self.image_label = QLabel('图片:')
 
         self.model_input = QLineEdit()
         self.quantity_input = QLineEdit()
-        self.supplier_input = QLineEdit()
+        # 创建供货商输入框
+        self.supplier_input = QComboBox()
+        self.supplier_input.setEditable(True)  # 允许用户手动输入
+
+        # 填充供货商组合框选项
+        suppliers = self.parent().get_suppliers() 
+        for supplier in suppliers:
+            self.supplier_input.addItem(supplier)
+        self.category_input = QComboBox()
+        self.category_input.setEditable(True)  # 允许用户手动输入
+
+        # 填充组合框选项
+        categories = self.parent().get_categories()
+        for category in categories:
+            self.category_input.addItem(category)
         self.note_input = QPlainTextEdit()
         self.add_image_button = QPushButton('选择图片')
 
+        # 设置字体
         self.model_label.setFont(font)
         self.quantity_label.setFont(font)
         self.supplier_label.setFont(font)
+        self.category_label.setFont(font)
         self.note_label.setFont(font)
         self.image_label.setFont(font)
 
         self.model_input.setFont(font)
         self.quantity_input.setFont(font)
         self.supplier_input.setFont(font)
+        self.category_input.setFont(font)
         self.note_input.setFont(font)
         self.add_image_button.setFont(font)
 
+        # 添加到布局
         self.layout.addWidget(self.model_label)
         self.layout.addWidget(self.model_input)
         self.layout.addWidget(self.quantity_label)
         self.layout.addWidget(self.quantity_input)
         self.layout.addWidget(self.supplier_label)
         self.layout.addWidget(self.supplier_input)
+        self.layout.addWidget(self.category_label)  # 新增产品类别布局
+        self.layout.addWidget(self.category_input)  # 新增产品类别布局
         self.layout.addWidget(self.note_label)
         self.layout.addWidget(self.note_input)
         self.layout.addWidget(self.image_label)
         self.layout.addWidget(self.add_image_button)
 
-        self.add_image_button.clicked.connect(self.select_image)
-
+        # 按钮布局
         button_layout = QHBoxLayout()
         self.save_button = QPushButton('保存')
         self.cancel_button = QPushButton('取消')
@@ -73,28 +94,18 @@ class AddProductDialog(QDialog):
         button_layout.addWidget(self.cancel_button)
         self.layout.addLayout(button_layout)
 
+        # 按钮连接
+        self.add_image_button.clicked.connect(self.select_image)
         self.save_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
 
         self.setLayout(self.layout)
 
+        # 图片相关
         self.selected_image_path = ''
         self.new_image_path = ''
-        self.image_name=''
-    '''
-    def select_image(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.ReadOnly
-        file_dialog = QFileDialog()
-        file_dialog.setOptions(options)
-        file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg *.bmp *.gif)")
-        file_dialog.setViewMode(QFileDialog.List)
-        file_dialog.setFileMode(QFileDialog.ExistingFiles)
-        file_paths, _ = file_dialog.getOpenFileNames(self, '选择图片', '', 'Images (*.png *.jpg *.jpeg *.bmp *.gif)')
+        self.image_name = ''
 
-        if file_paths:
-            self.selected_image_path = self.copy_images_to_folder(file_paths)
-    '''
     def select_image(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
