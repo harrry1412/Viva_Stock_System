@@ -5,23 +5,6 @@ from mysql.connector import pooling
 
 
 class DatabaseManager:
-    '''
-    def __init__(self):
-        config = configparser.ConfigParser()
-        config.read('mysql.txt')
-        self.host = config.get('database', 'host')
-        self.user = config.get('database', 'user')
-        self.password = config.get('database', 'password')
-        self.database = config.get('database', 'database')
-
-    def connect(self):
-        return mysql.connector.connect(
-            host=self.host,
-            user=self.user,
-            password=self.password,
-            database=self.database
-        )
-    '''
     def __init__(self):
         config = configparser.ConfigParser()
         config.read('mysql.txt')
@@ -47,11 +30,19 @@ class DatabaseManager:
         suppliers = [row[0] for row in cursor.fetchall()]
         conn.close()
         return suppliers
+    
+    def fetch_category(self):
+        conn=self.connect()
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT category FROM rug")
+        categories = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return categories
 
     def fetch_rugs(self):
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, qty, supplier, note, image FROM rug order by supplier, sort, id ASC")
+        cursor.execute("SELECT id, qty, supplier, category, note, image FROM rug order by supplier, sort, id ASC")
         rows = cursor.fetchall()
         conn.close()
         return rows
@@ -71,7 +62,7 @@ class DatabaseManager:
         cursor = conn.cursor()
 
         # 包括排序方向参数
-        query = f"SELECT id, qty, supplier, note, image FROM rug ORDER BY {key} {direction}"
+        query = f"SELECT id, qty, supplier, category, note, image FROM rug ORDER BY {key} {direction}"
         cursor.execute(query)  # 不需要传递参数了
         rows = cursor.fetchall()
         conn.close()

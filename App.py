@@ -30,7 +30,7 @@ from ClickableLineEdit import ClickableLineEdit
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V2.8.4'
+        self.version='V3.0.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -39,7 +39,9 @@ class App(QMainWindow):
         self.record_thread_pool.setMaxThreadCount(1)
         print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
         self.supplier_list = None
+        self.category_list = None
         self.filtered_suppliers = []
+        self.filtered_categories = []
         self.image_loaders = []
         self.order_key='none'
         self.order_direction='ASC'
@@ -120,7 +122,7 @@ class App(QMainWindow):
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
-        search_layout.addWidget(self.about_button)
+        #search_layout.addWidget(self.about_button)
         search_layout.addWidget(self.login_button)
         search_layout.addStretch(1)
         search_layout.setContentsMargins(0, 0, 0, 0)
@@ -217,6 +219,11 @@ class App(QMainWindow):
         if self.supplier_list is None:
             self.supplier_list = self.db_manager.fetch_supplier()
         return self.supplier_list
+    
+    def get_categories(self):
+        if self.category_list is None:
+            self.category_list = self.db_manager.fetch_category()
+        return self.category_list
 
     def show_full_size_image(self, row, column):
         if column == 0:
@@ -250,8 +257,8 @@ class App(QMainWindow):
         # 将滚动条移动到最上面
         self.table_widget.verticalScrollBar().setValue(0)
 
-        # 创建并启动 DataFetcher
-        fetcher = DataFetcher(self.db_manager, self.order_key, self.order_direction, self.filtered_suppliers)
+        # 创建并启动 DataFetcher，现在传递两个筛选列表
+        fetcher = DataFetcher(self.db_manager, self.order_key, self.order_direction, self.filtered_suppliers, self.filtered_categories)
         fetcher.signals.finished.connect(self.on_data_fetched)
         fetcher.signals.error.connect(self.on_data_fetch_error)
         self.thread_pool.start(fetcher)
@@ -260,7 +267,7 @@ class App(QMainWindow):
         self.image_paths = {}
         self.table_widget.setRowCount(len(filtered_rows))
 
-        for i, (id, qty, supplier, note, image_path) in enumerate(filtered_rows):
+        for i, (id, qty, supplier, category, note, image_path) in enumerate(filtered_rows):
             full_image_path = self.make_full_image_path(image_path)
             self.image_paths[i] = full_image_path
 
@@ -579,12 +586,13 @@ class App(QMainWindow):
 
     def show_filter_dialog(self):
         filter_dialog = FilterDialog(self)
-        filter_dialog.filterApplied.connect(self.apply_supplier_filter)
+        filter_dialog.filterApplied.connect(self.apply_filters)  # 修改方法名称以反映其功能
         filter_dialog.exec_()
 
-    def apply_supplier_filter(self, selected_suppliers):
-        if (selected_suppliers == []):
-            self.filtered_suppliers=[]
+    def apply_filters(self, selected_suppliers, selected_categories):
+        if not selected_suppliers and not selected_categories:
+            self.filtered_suppliers = []
+            self.filtered_categories = []
             self.resetApplication()
         else:
             # 取消所有正在进行的图片加载
@@ -593,8 +601,10 @@ class App(QMainWindow):
 
             # 清空现有的 ImageLoader 实例列表
             self.image_loaders.clear()
+
             # 应用筛选并重新填充表格
             self.filtered_suppliers = selected_suppliers
+            self.filtered_categories = selected_categories
             self.populate_table()
 
     def show_order_dialog(self):
@@ -779,6 +789,7 @@ class App(QMainWindow):
     
     def refreshWindow(self):
         self.filtered_suppliers=[]
+        self.filtered_categories=[]
         self.resetApplication()
 
     def resetApplication(self):
