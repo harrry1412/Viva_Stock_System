@@ -39,6 +39,9 @@ class AddProductDialog(QDialog):
         self.supplier_input = QComboBox()
         self.supplier_input.setEditable(True)  # 允许用户手动输入
 
+        # 添加一个空的选项作为默认选项
+        self.supplier_input.addItem("")  # 添加一个空字符串作为默认选项
+
         # 填充供货商组合框选项
         suppliers = self.parent().get_suppliers() 
         for supplier in suppliers:
