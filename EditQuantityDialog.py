@@ -21,6 +21,7 @@ class EditQuantityDialog(QDialog):
 
         input_layout = QHBoxLayout()
 
+        self.title_label = QLabel('请在下方输入更新后的数量：')
         self.decrement_button = QPushButton('-')
         self.new_quantity_input = QLineEdit()
         self.increment_button = QPushButton('+')
@@ -35,6 +36,7 @@ class EditQuantityDialog(QDialog):
 
         font = QFont()
         font.setPointSize(16)
+        self.title_label.setFont(font)
         self.new_quantity_input.setFont(font)
         self.decrement_button.setFont(font)
         self.increment_button.setFont(font)
@@ -55,6 +57,7 @@ class EditQuantityDialog(QDialog):
         input_layout.addWidget(self.increment_button)
 
 
+        self.layout.addWidget(self.title_label)
         self.layout.addLayout(input_layout)
         # 将日期选择器添加到布局中
         self.layout.addWidget(self.date_label)
@@ -125,3 +128,4 @@ class EditQuantityDialog(QDialog):
             self.accept()
         else:
             QMessageBox.warning(self, '警告', '记录不能为空')
+
