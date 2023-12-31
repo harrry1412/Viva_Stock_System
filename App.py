@@ -60,6 +60,14 @@ class App(QMainWindow):
         self.image_loaders = []  # 用于存储 ImageLoader 实例
         self.sorting_states = {}  # 添加属性来保存默认行顺序
         self.sorting_states = {1: 'default', 2: 'default', 3: 'default'} # 初始化排序状态为默认
+        self.image_index=0
+        self.id_index=0
+        self.category_index=0
+        self.supplier_index=0
+        self.qty_index=0
+        self.note_index=0
+        self.record_index=0
+        self.action_index=0
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -139,8 +147,8 @@ class App(QMainWindow):
 
 
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(7)  #总列数
-        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "供货商", "数量", "备注", "记录", "操作"])
+        self.table_widget.setColumnCount(8)  #总列数
+        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "类型", "供货商", "数量", "备注", "记录", "操作"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.populate_table()
         self.layout.addWidget(self.table_widget)
@@ -166,14 +174,20 @@ class App(QMainWindow):
         # 设置所有列为可伸缩模式
         header.setSectionResizeMode(QHeaderView.Stretch)
 
-        # 假设您想为第一列（图片）和最后一列（操作按钮）设置为可交互模式
+        # 设置所有列号
+        self.setAllColumnIndex()
 
-        header.setSectionResizeMode(1, QHeaderView.Interactive)
-        header.resizeSection(1, 300)
-        header.setSectionResizeMode(2, QHeaderView.Interactive)
-        header.resizeSection(2, 150)
-        header.setSectionResizeMode(3, QHeaderView.Interactive)
-        header.resizeSection(3, 100)
+        
+        header.setSectionResizeMode(self.image_index, QHeaderView.Interactive)
+        header.resizeSection(self.image_index, 200)
+        header.setSectionResizeMode(self.id_index, QHeaderView.Interactive)
+        header.resizeSection(self.id_index, 300)
+        header.setSectionResizeMode(self.category_index, QHeaderView.Interactive)
+        header.resizeSection(self.category_index, 150)
+        header.setSectionResizeMode(self.supplier_index, QHeaderView.Interactive)
+        header.resizeSection(self.supplier_index, 100)
+        header.setSectionResizeMode(self.qty_index, QHeaderView.Interactive)
+        header.resizeSection(self.qty_index, 100)
 
         # 启用表格排序
         self.table_widget.horizontalHeader().sectionClicked.connect(self.onHeaderClicked)
@@ -189,9 +203,9 @@ class App(QMainWindow):
 
     def onHeaderClicked(self, logicalIndex):
         # 检查被点击的列是否是可排序的列
-        if logicalIndex in [1, 2, 3]:  # 假设这些列的索引是 1, 2, 3
+        if logicalIndex in [self.id_index, self.category_index, self.supplier_index, self.qty_index]: 
             # '型号', '供货商', '数量' 列的排序键
-            order_keys = {1: 'id', 2: 'supplier', 3: 'qty'}
+            order_keys = {self.id_index: 'id', self.category_index: 'category', self.supplier_index: 'supplier', self.qty_index: 'qty'}
 
             # 获取当前列的排序键
             order_key = order_keys[logicalIndex]
@@ -226,7 +240,7 @@ class App(QMainWindow):
         return self.category_list
 
     def show_full_size_image(self, row, column):
-        if column == 0:
+        if column == self.image_index:
             image_path = self.get_full_image_path_from_row(row)
             if image_path:
                 loader = ImageLoader(image_path, row, thumbnail=False)
@@ -264,6 +278,8 @@ class App(QMainWindow):
         self.thread_pool.start(fetcher)
 
     def on_data_fetched(self, filtered_rows):
+        self.setAllColumnIndex()
+
         self.image_paths = {}
         self.table_widget.setRowCount(len(filtered_rows))
 
@@ -274,13 +290,14 @@ class App(QMainWindow):
             # Image column
             image_label = QLabel()
             image_label.setAlignment(Qt.AlignCenter)
-            self.table_widget.setCellWidget(i, 0, image_label)
+            self.table_widget.setCellWidget(i, self.image_index, image_label)
 
             if full_image_path:
                 loader = ImageLoader(full_image_path, i)
                 loader.signals.image_loaded.connect(self.set_thumbnail)
                 self.thread_pool.start(loader)
                 self.image_loaders.append(loader)  # 将实例添加到列表中
+
 
             # ID column
             self.table_widget.setItem(i, 1, QTableWidgetItem(str(id)))
@@ -291,31 +308,38 @@ class App(QMainWindow):
             item = self.table_widget.item(i, 1)
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
 
+            # Category column
+            category_item = QTableWidgetItem(category)
+            category_item.setFlags(category_item.flags() & ~Qt.ItemIsEditable)
+            category_item.setFont(font)
+            category_item.setTextAlignment(Qt.AlignCenter)
+            self.table_widget.setItem(i, self.category_index, category_item)
+
             # Supplier column
             supplier_item = QTableWidgetItem(supplier)
             supplier_item.setFlags(supplier_item.flags() & ~Qt.ItemIsEditable)
             supplier_item.setFont(font)
             supplier_item.setTextAlignment(Qt.AlignCenter)
-            self.table_widget.setItem(i, 2, supplier_item)
+            self.table_widget.setItem(i, self.supplier_index, supplier_item)
 
             # Quantity column
             qty_item = QTableWidgetItem(str(qty))
             qty_item.setFlags(qty_item.flags() & ~Qt.ItemIsEditable)
             qty_item.setFont(font)
             qty_item.setTextAlignment(Qt.AlignCenter)
-            self.table_widget.setItem(i, 3, qty_item)
+            self.table_widget.setItem(i, self.qty_index, qty_item)
 
             # Note column
             note_item = QTableWidgetItem(note)
             note_item.setFlags(note_item.flags() & ~Qt.ItemIsEditable)
             note_item.setFont(font)
             note_item.setTextAlignment(Qt.AlignCenter)
-            self.table_widget.setItem(i, 4, note_item)
+            self.table_widget.setItem(i, self.note_index, note_item)
 
             # Record column
             record_item = QTableWidgetItem("加载中...")
             record_item.setFlags(record_item.flags() & ~Qt.ItemIsEditable)
-            self.table_widget.setItem(i, 5, record_item)
+            self.table_widget.setItem(i, self.record_index, record_item)
 
             # 启动记录加载
             record_loader = RecordLoader(self.db_manager, id, i)
@@ -341,7 +365,10 @@ class App(QMainWindow):
             button_layout.addWidget(record_button)
             button_layout.setContentsMargins(0, 0, 0, 0)
             button_container.setLayout(button_layout)
-            self.table_widget.setCellWidget(i, 6, button_container)
+            print('-----------------------')
+            print(self.get_column_index_by_name('操作'))
+            print(self.action_index)
+            self.table_widget.setCellWidget(i, self.action_index, button_container)
 
             self.table_widget.setRowHeight(i, 110)
 
@@ -362,16 +389,23 @@ class App(QMainWindow):
         record_item.setTextAlignment(Qt.AlignCenter)
 
         # 将表格项添加到表格的相应行和列
-        self.table_widget.setItem(row_number, 5, record_item)
+        record_index=self.get_column_index_by_name('记录')
+        self.table_widget.setItem(row_number, record_index, record_item)
 
 
     def set_thumbnail(self, index, thumbnail):
-        image_label = self.table_widget.cellWidget(index, 0)
+        image_label = self.table_widget.cellWidget(index, self.image_index)
         if image_label:
             image_label.setPixmap(thumbnail)
         sender = self.sender()
         if sender:
             sender.deleteLater()
+
+    def get_column_index_by_name(self, column_name):
+        for col in range(self.table_widget.columnCount()):
+            if self.table_widget.horizontalHeaderItem(col).text() == column_name:
+                return col
+        return -1
 
 
 
@@ -469,7 +503,7 @@ class App(QMainWindow):
             return
 
         rug_id = self.table_widget.item(row, id_col).text()
-        note = self.table_widget.item(row, 4).text()
+        note = self.table_widget.item(row, self.note_index).text()
         logged=self.logged
 
         note_dialog = NoteDialog(self, rug_id, note, logged)
@@ -512,9 +546,9 @@ class App(QMainWindow):
 
             # 更新表格中的备注信息
             note_item = QTableWidgetItem(new_note)
-            note_item.setFont(self.table_widget.item(row, 4).font())
+            note_item.setFont(self.table_widget.item(row, self.note_index).font())
             note_item.setTextAlignment(Qt.AlignCenter)
-            self.table_widget.setItem(row, 4, note_item)
+            self.table_widget.setItem(row, self.note_index, note_item)
         except mysql.connector.Error as err:
             print(f"Error updating note: {err}")
 
@@ -786,6 +820,16 @@ class App(QMainWindow):
                     QMessageBox.information(self, '导出完成', f'已导出数据到 {selected_file}')
                 except Exception as e:
                     QMessageBox.warning(self, '导出失败', f'导出时出现错误: {str(e)}')
+
+    def setAllColumnIndex(self):
+        self.image_index=self.get_column_index_by_name('图片')
+        self.id_index=self.get_column_index_by_name('型号')
+        self.category_index=self.get_column_index_by_name('类型')
+        self.supplier_index=self.get_column_index_by_name('供货商')
+        self.qty_index=self.get_column_index_by_name('数量')
+        self.note_index=self.get_column_index_by_name('备注')
+        self.record_index=self.get_column_index_by_name('记录')
+        self.action_index=self.get_column_index_by_name('操作')
     
     def refreshWindow(self):
         self.filtered_suppliers=[]
