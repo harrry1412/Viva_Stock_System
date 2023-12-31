@@ -30,7 +30,7 @@ from ClickableLineEdit import ClickableLineEdit
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V3.0.0'
+        self.version='V3.6.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -365,9 +365,6 @@ class App(QMainWindow):
             button_layout.addWidget(record_button)
             button_layout.setContentsMargins(0, 0, 0, 0)
             button_container.setLayout(button_layout)
-            print('-----------------------')
-            print(self.get_column_index_by_name('操作'))
-            print(self.action_index)
             self.table_widget.setCellWidget(i, self.action_index, button_container)
 
             self.table_widget.setRowHeight(i, 110)
