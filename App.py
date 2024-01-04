@@ -30,7 +30,7 @@ from ClickableLineEdit import ClickableLineEdit
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V3.6.1'
+        self.version='V3.7.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -437,8 +437,8 @@ class App(QMainWindow):
         item = self.table_widget.item(row, quantity_col)
         current_quantity = item.text()
 
-        dialog = EditQuantityDialog(self)
-        dialog.new_quantity_input.setText(str(current_quantity))  # 确保传入的是字符串
+        dialog = EditQuantityDialog(self, current_quantity)
+        #dialog.new_quantity_input.setText(str(current_quantity))
         result = dialog.exec_()
         if result == QDialog.Accepted:
             new_quantity = dialog.get_new_quantity()

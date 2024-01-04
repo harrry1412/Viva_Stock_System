@@ -8,7 +8,7 @@ from PyQt5.QtCore import QDate
 
 
 class EditQuantityDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, current_quantity=''):
         super().__init__(parent)
         self.setWindowTitle('编辑数量')
         if getattr(sys, 'frozen', False):
@@ -23,7 +23,9 @@ class EditQuantityDialog(QDialog):
 
         self.title_label = QLabel('请在下方输入更新后的数量：')
         self.decrement_button = QPushButton('-')
+        self.head_label = QLabel('当前数量：')
         self.new_quantity_input = QLineEdit()
+        self.new_quantity_input.setText(current_quantity)
         self.increment_button = QPushButton('+')
         # 添加记录文本输入框
         self.record_label=QLabel('调货细节/原因：')
@@ -39,6 +41,7 @@ class EditQuantityDialog(QDialog):
         self.title_label.setFont(font)
         self.new_quantity_input.setFont(font)
         self.decrement_button.setFont(font)
+        self.head_label.setFont(font)
         self.increment_button.setFont(font)
         self.record_label.setFont(font)
         self.record_input.setFont(font)
@@ -52,9 +55,10 @@ class EditQuantityDialog(QDialog):
         self.decrement_button.setFixedSize(button_size, button_size)
         self.increment_button.setFixedSize(button_size, button_size)
 
-        input_layout.addWidget(self.decrement_button)
+        #input_layout.addWidget(self.decrement_button)
+        input_layout.addWidget(self.head_label)
         input_layout.addWidget(self.new_quantity_input)
-        input_layout.addWidget(self.increment_button)
+        #input_layout.addWidget(self.increment_button)
 
 
         self.layout.addWidget(self.title_label)
