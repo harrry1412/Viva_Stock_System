@@ -141,7 +141,8 @@ class AddProductDialog(QDialog):
     def get_product_data(self):
         model = self.model_input.text().strip()  # 获取型号输入框的文本内容
         quantity = self.quantity_input.text().strip()  # 获取数量输入框的文本内容
-        supplier = self.supplier_input.text().strip()  # 获取供货商输入框的文本内容
+        supplier = self.supplier_input.currentText().strip()  # 获取供货商输入框的文本内容
+        category = self.category_input.currentText().strip()
         note = self.note_input.toPlainText().strip()  # 获取备注输入框的文本内容
 
         # 检查型号和数量是否为空
@@ -159,9 +160,9 @@ class AddProductDialog(QDialog):
             QMessageBox.warning(self, '警告', '型号已经存在')
             return None
 
-        image = self.image_name  # 假设 self.image_name 已经是前面代码中定义的
+        image = self.image_name 
 
         # 一切检查通过后，返回产品数据
-        return (model, int(quantity), supplier, note, image)
+        return (model, int(quantity), category, supplier, note, image)
 
     

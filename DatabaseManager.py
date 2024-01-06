@@ -127,7 +127,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            insert_query = "INSERT INTO rug (id, qty, supplier, note, image) VALUES (%s, %s, %s, %s, %s)"
+            insert_query = "INSERT INTO rug (id, qty, category, supplier, note, image) VALUES (%s, %s, %s, %s, %s, %s)"
             cursor.execute(insert_query, product_data)  # Directly pass the product_data tuple
             conn.commit()
             return True  # Return True to indicate success
