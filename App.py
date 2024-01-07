@@ -30,7 +30,7 @@ from ClickableLineEdit import ClickableLineEdit
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V3.7.5'
+        self.version='V3.7.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -613,7 +613,7 @@ class App(QMainWindow):
         if not self.search_results:
             return
         row = self.search_results[self.current_result_index]
-        self.table_widget.scrollTo(self.table_widget.model().index(row, 0), QAbstractItemView.PositionAtTop)
+        self.table_widget.scrollTo(self.table_widget.model().index(row, 0), QAbstractItemView.PositionAtCenter)
         self.table_widget.clearSelection()
         self.table_widget.selectRow(row)
 
