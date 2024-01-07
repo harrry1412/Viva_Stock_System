@@ -30,7 +30,7 @@ from ClickableLineEdit import ClickableLineEdit
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V3.7.2'
+        self.version='V3.7.5'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -568,7 +568,7 @@ class App(QMainWindow):
             for row in range(self.table_widget.rowCount()):
                 for col in range(self.table_widget.columnCount()):
                     # 跳过“记录”列的搜索
-                    if col == 5:  # 假设“记录”列是第六列，索引为5
+                    if col == self.record_index:  
                         continue
                     
                     item = self.table_widget.item(row, col)
@@ -581,7 +581,32 @@ class App(QMainWindow):
                 self.current_result_index = 0
                 self.show_current_result()
             else:
-                print("No results found.")
+                #print("No results found.")
+                self.search_input.setText('')
+                search_text=''
+                self.search_results=[]
+                self.table_widget.scrollToTop()
+
+                # 创建一个消息框
+                logout_message_box = QMessageBox()
+                logout_message_box.setIcon(QMessageBox.Information)
+
+                # 设置消息框的窗口图标
+                if getattr(sys, 'frozen', False):
+                    # 打包后的情况
+                    application_path = sys._MEIPASS
+                else:
+                    # 从源代码运行的情况
+                    application_path = os.path.dirname(os.path.abspath(__file__))
+                icon_path = os.path.join(application_path, 'vivastock.ico')
+                logout_message_box.setWindowIcon(QIcon(icon_path))
+
+                logout_message_box.setText("找不到结果")
+                logout_message_box.setWindowTitle("搜索失败")
+                logout_message_box.setStandardButtons(QMessageBox.Ok)
+                
+                # 显示消息框
+                logout_message_box.exec_()
 
 
     def show_current_result(self):
