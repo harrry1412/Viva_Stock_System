@@ -160,7 +160,10 @@ class AddProductDialog(QDialog):
             QMessageBox.warning(self, '警告', '型号已经存在')
             return None
 
-        image = self.image_name 
+
+        image = self.image_name
+        if (image==''):
+            image=model+'.png'
 
         # 一切检查通过后，返回产品数据
         return (model, int(quantity), category, supplier, note, image)
