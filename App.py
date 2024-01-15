@@ -31,7 +31,7 @@ import datetime
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V3.8.6'
+        self.version='V3.9.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -502,15 +502,15 @@ class App(QMainWindow):
             return
 
         rug_id = self.table_widget.item(row, id_col).text()
-        note = self.table_widget.item(row, self.note_index).text()
+        old_note = self.table_widget.item(row, self.note_index).text()
         logged=self.logged
 
-        note_dialog = NoteDialog(self, rug_id, note, logged)
+        note_dialog = NoteDialog(self, rug_id, old_note, logged)
         result = note_dialog.exec_()
 
         if result == QDialog.Accepted:
             new_note = note_dialog.get_new_note()
-            self.update_note(row, rug_id, new_note)
+            self.update_note(row, rug_id, new_note, old_note)
 
     def show_record_dialog(self, row):
         id_col = None
@@ -533,7 +533,7 @@ class App(QMainWindow):
         record_dialog.exec_()
 
 
-    def update_note(self, row, rug_id, new_note):
+    def update_note(self, row, rug_id, new_note, old_note):
         try:
             # 更新数据库中的备注信息
             conn = self.db_manager.connect()
@@ -542,6 +542,10 @@ class App(QMainWindow):
             cursor.execute(update_query, (new_note, rug_id))
             conn.commit()
             conn.close()
+
+            #Update note_record in database
+            date=datetime.datetime.now()
+            self.db_manager.insert_note_record(rug_id, self.user, old_note, new_note, date)
 
             # 更新表格中的备注信息
             note_item = QTableWidgetItem(new_note)

@@ -106,7 +106,6 @@ class DatabaseManager:
     def insert_record(self, record_id, user, content, bef, aft, date, edit_date):
         conn = self.connect()
         cursor = conn.cursor()
-        # 请确保下面的SQL语句中的列名与您数据库中的列名相匹配
         insert_query = """
         INSERT INTO record (id, usr, content, bef, aft, dat, editdate) 
         VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -119,7 +118,22 @@ class DatabaseManager:
         cursor.close()
         conn.close()
 
-  
+    def insert_note_record(self, record_id, user, bef, aft, date):
+        conn = self.connect()
+        cursor = conn.cursor()
+        insert_query = """
+        INSERT INTO note_record (id, usr, bef, aft, dat) 
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        # 执行插入操作
+        cursor.execute(insert_query, (record_id, user, bef, aft, date))
+        # 提交更改
+        conn.commit()
+        # 关闭连接
+        cursor.close()
+        conn.close()
+
+
     def insert_product(self, product_data):
         for data in product_data:
             if(data is None):
