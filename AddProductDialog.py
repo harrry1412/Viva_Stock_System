@@ -124,7 +124,7 @@ class AddProductDialog(QDialog):
             self.selected_image_path = file_paths[0] # 假设我们只处理第一个选中的文件
             # 生成新文件名
             _, ext = os.path.splitext(self.selected_image_path)
-            model = self.model_input.text().strip()
+            model = self.model_input.text().strip().replace('/', '-')
             self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
             self.image_name = os.path.basename(self.new_image_path)
             

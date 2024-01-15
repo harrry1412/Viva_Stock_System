@@ -31,7 +31,7 @@ import datetime
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V3.9.6'
+        self.version='V3.9.7'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
