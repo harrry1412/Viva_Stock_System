@@ -103,16 +103,16 @@ class DatabaseManager:
         conn.commit()
         conn.close()
 
-    def insert_record(self, record_id, user, content, bef, aft, date):
+    def insert_record(self, record_id, user, content, bef, aft, date, edit_date):
         conn = self.connect()
         cursor = conn.cursor()
         # 请确保下面的SQL语句中的列名与您数据库中的列名相匹配
         insert_query = """
-        INSERT INTO record (id, usr, content, bef, aft, dat) 
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO record (id, usr, content, bef, aft, dat, editdate) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         # 执行插入操作
-        cursor.execute(insert_query, (record_id, user, content, bef, aft, date))
+        cursor.execute(insert_query, (record_id, user, content, bef, aft, date, edit_date))
         # 提交更改
         conn.commit()
         # 关闭连接

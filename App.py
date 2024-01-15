@@ -25,6 +25,7 @@ from RecordLoader import RecordLoader
 from ImageLable import ImageLabel
 from AboutDialog import AboutDialog
 from ClickableLineEdit import ClickableLineEdit
+import datetime
 
 
 class App(QMainWindow):
@@ -451,7 +452,8 @@ class App(QMainWindow):
             rug_id = self.table_widget.item(row, id_col).text()
             user = self.user
             
-            self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date)
+            edit_date=datetime.datetime.now()
+            self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date, edit_date)
             self.update_quantity(row, rug_id, new_quantity)
 
     def update_quantity(self, row, rug_id, new_quantity):
