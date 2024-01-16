@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
+import datetime
 
 
 
@@ -166,6 +167,7 @@ class AddProductDialog(QDialog):
             image=model+'.png'
 
         # 一切检查通过后，返回产品数据
-        return (model, int(quantity), category, supplier, note, image)
+            date=datetime.datetime.now()
+        return (model, int(quantity), category, supplier, note, image, date)
 
     
