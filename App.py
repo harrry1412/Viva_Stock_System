@@ -6,10 +6,10 @@ import mysql.connector
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLabel,
-    QHeaderView, QPushButton, QDialog, QLineEdit, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView
+    QHeaderView, QPushButton, QDialog, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView
 )
 from PyQt5.QtGui import QFont, QIcon
-from PyQt5.QtCore import Qt, QTimer, QSize
+from PyQt5.QtCore import Qt, QTimer
 
 from DatabaseManager import DatabaseManager
 from EditQuantityDialog import EditQuantityDialog
@@ -31,7 +31,7 @@ import datetime
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V4.0.0'
+        self.version='V4.1.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -769,7 +769,7 @@ class App(QMainWindow):
         add_product_dialog = AddProductDialog(self)
         result = add_product_dialog.exec_()
         if result == QDialog.Accepted:
-            product_data = add_product_dialog.get_product_data()
+            product_data = add_product_dialog.get_product_data(self)
             if product_data:
                 # 注意，此处我们不再直接复制图片，而是传递图片路径给数据库添加函数
                 success = self.add_product_to_database(product_data)

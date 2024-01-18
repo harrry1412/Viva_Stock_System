@@ -139,7 +139,7 @@ class AddProductDialog(QDialog):
 
     from PyQt5.QtWidgets import QMessageBox
 
-    def get_product_data(self):
+    def get_product_data(self, parent=None):
         model = self.model_input.text().strip()  # 获取型号输入框的文本内容
         quantity = self.quantity_input.text().strip()  # 获取数量输入框的文本内容
         supplier = self.supplier_input.currentText().strip()  # 获取供货商输入框的文本内容
@@ -168,6 +168,7 @@ class AddProductDialog(QDialog):
 
         # 一切检查通过后，返回产品数据
             date=datetime.datetime.now()
-        return (model, int(quantity), category, supplier, note, image, date)
+            user=parent.user
+        return (model, int(quantity), category, supplier, note, image, date, user)
 
     
