@@ -1,10 +1,57 @@
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QPushButton, QLineEdit, QHBoxLayout, QMessageBox, QLabel, QDateEdit
+    QDialog, QVBoxLayout, QPushButton, QLineEdit, QHBoxLayout, QMessageBox, QLabel, QDateEdit, QWidget
 )
 import sys
 from PyQt5.QtGui import QFont, QIcon
-from PyQt5.QtCore import Qt
-from PyQt5.QtCore import QDate
+from PyQt5.QtCore import Qt, QDate
+
+
+class CustomDateEdit(QWidget):
+    def __init__(self, parent=None):
+        super(CustomDateEdit, self).__init__(parent)
+
+        self.layout = QVBoxLayout(self)
+        self.dateEdit = QDateEdit(self)
+        self.lineEdit = QLineEdit(self)
+        self.choseDate=0
+
+        font = QFont()
+        font.setPointSize(16)
+        self.dateEdit.setFont(font)
+        self.lineEdit.setFont(font)
+
+        self.dateEdit.setCalendarPopup(True)
+        self.dateEdit.setDisplayFormat("yyyy-MM-dd")
+        self.dateEdit.hide()  # Initially hide the dateEdit
+
+        self.layout.addWidget(self.lineEdit)
+        self.layout.addWidget(self.dateEdit)
+
+        self.lineEdit.setReadOnly(True)
+        self.lineEdit.mousePressEvent = self.showCalendar
+        self.dateEdit.dateChanged.connect(self.onDateChanged)
+
+    def showCalendar(self, event):
+        self.dateEdit.setDate(QDate.currentDate())
+        self.dateEdit.show()
+        self.dateEdit.setFocus()
+        self.lineEdit.hide()
+        self.choseDate=1
+
+    def onDateChanged(self, date):
+        self.lineEdit.setText(date.toString("yyyy-MM-dd"))
+        self.dateEdit.hide()
+        self.lineEdit.show()
+
+    def date(self):
+        return self.dateEdit.date()
+
+    def setDate(self, date):
+        self.dateEdit.setDate(date)
+        self.lineEdit.setText(date.toString("yyyy-MM-dd"))
+
+    def setCalendarPopup(self, enable):
+        self.dateEdit.setCalendarPopup(enable)
 
 
 class EditQuantityDialog(QDialog):
@@ -16,7 +63,7 @@ class EditQuantityDialog(QDialog):
         else:
             self.setWindowIcon(QIcon('vivastock.ico'))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.setFixedSize(400, 300)
+        self.setFixedSize(500, 400)
         self.layout = QVBoxLayout()
 
         input_layout = QHBoxLayout()
@@ -32,9 +79,7 @@ class EditQuantityDialog(QDialog):
         self.record_input = QLineEdit()
         # 添加日期编辑器
         self.date_label = QLabel('开单日期：')
-        self.date_input = QDateEdit()
-        self.date_input.setCalendarPopup(True)  # 允许弹出日历来选择日期
-        self.date_input.setDate(QDate.currentDate())  # 设置日期编辑器的日期为当前日期
+        self.date_input = CustomDateEdit()
 
         font = QFont()
         font.setPointSize(16)
@@ -90,6 +135,7 @@ class EditQuantityDialog(QDialog):
 
         self.setLayout(self.layout)
 
+
     def get_new_quantity(self):
         return self.new_quantity_input.text()
 
@@ -98,6 +144,7 @@ class EditQuantityDialog(QDialog):
     
     def get_selected_date(self):
         # 返回一个 QDate 对象，转换为字符串格式
+        print(self.date_input.date())
         return self.date_input.date().toString(Qt.ISODate)
 
     def increment_quantity(self):
@@ -126,10 +173,10 @@ class EditQuantityDialog(QDialog):
         # 确保记录不为空
         if record.strip():  # 检查 record 是否为空或只包含空白
             # 所有检查通过后保存更改或同步到数据库
-            print(f"保存数量更改: {new_quantity}")
-            print(f"记录: {record}")
-            print(f"选择的日期: {selected_date}")  # 打印选择的日期
-            self.accept()
+            if(self.date_input.choseDate==1):
+                self.accept()
+            else:
+                QMessageBox.warning(self, '警告', '请选择开单日期')
         else:
             QMessageBox.warning(self, '警告', '记录不能为空')
 
