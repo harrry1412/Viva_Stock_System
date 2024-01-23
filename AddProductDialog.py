@@ -170,5 +170,4 @@ class AddProductDialog(QDialog):
             date=datetime.datetime.now()
             user=parent.user
         return (model, int(quantity), category, supplier, note, image, date, user)
-
     

@@ -31,7 +31,7 @@ import datetime
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V4.2.0'
+        self.version='V4.3.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -53,9 +53,8 @@ class App(QMainWindow):
         self.redo_stack = []
         self.search_results = []
         self.current_result_index = 0
-        self.logged=0
         self.user='Guest'
-        self.table_widget.cellDoubleClicked.connect(self.show_full_size_image)
+        self.table_widget.cellDoubleClicked.connect(self.handle_cell_clicked)
         self.image_paths = {}  # 添加字典来存储图片路径
         self.last_search = ""
         self.image_loaders = []  # 用于存储 ImageLoader 实例
@@ -69,6 +68,7 @@ class App(QMainWindow):
         self.note_index=0
         self.record_index=0
         self.action_index=0
+        self.logged=0
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -240,13 +240,23 @@ class App(QMainWindow):
             self.category_list = self.db_manager.fetch_category()
         return self.category_list
 
-    def show_full_size_image(self, row, column):
-        if column == self.image_index:
-            image_path = self.get_full_image_path_from_row(row)
-            if image_path:
-                loader = ImageLoader(image_path, row, thumbnail=False)
-                loader.signals.image_loaded.connect(self.display_full_size_image)
-                self.full_size_image_thread_pool.start(loader)  # 使用新的线程池
+    def handle_cell_clicked(self, row, column):
+        if column==self.image_index:
+            self.show_full_size_image(row)
+        elif column==self.qty_index:
+            self.edit_quantity(row)
+        elif column==self.note_index:
+            self.show_note_dialog(row)
+        elif column==self.record_index:
+            self.show_record_dialog(row)
+
+
+    def show_full_size_image(self, row):
+        image_path = self.get_full_image_path_from_row(row)
+        if image_path:
+            loader = ImageLoader(image_path, row, thumbnail=False)
+            loader.signals.image_loaded.connect(self.display_full_size_image)
+            self.full_size_image_thread_pool.start(loader)  # 使用新的线程池
 
 
     def display_full_size_image(self, row, pixmap):
@@ -439,7 +449,6 @@ class App(QMainWindow):
         current_quantity = item.text()
 
         dialog = EditQuantityDialog(self, current_quantity)
-        #dialog.new_quantity_input.setText(str(current_quantity))
         result = dialog.exec_()
         if result == QDialog.Accepted:
             new_quantity = dialog.get_new_quantity()
@@ -496,18 +505,14 @@ class App(QMainWindow):
             if self.table_widget.horizontalHeaderItem(col).text() == "型号":
                 id_col = col
                 break
-
         if id_col is None:
             print("Error: '型号' column not found!")
             return
-
         rug_id = self.table_widget.item(row, id_col).text()
         old_note = self.table_widget.item(row, self.note_index).text()
         logged=self.logged
-
         note_dialog = NoteDialog(self, rug_id, old_note, logged)
         result = note_dialog.exec_()
-
         if result == QDialog.Accepted:
             new_note = note_dialog.get_new_note()
             self.update_note(row, rug_id, new_note, old_note)
