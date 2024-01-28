@@ -26,6 +26,7 @@ from ImageLable import ImageLabel
 from AboutDialog import AboutDialog
 from ClickableLineEdit import ClickableLineEdit
 import datetime
+from EditProductDialog import EditProductDialog
 
 
 class App(QMainWindow):
@@ -249,6 +250,8 @@ class App(QMainWindow):
             self.show_note_dialog(row)
         elif column==self.record_index:
             self.show_record_dialog(row)
+        elif column==self.id_index:
+            self.show_editProduct_dialog(row)
 
 
     def show_full_size_image(self, row):
@@ -517,27 +520,6 @@ class App(QMainWindow):
             new_note = note_dialog.get_new_note()
             self.update_note(row, rug_id, new_note, old_note)
 
-    def show_record_dialog(self, row):
-        id_col = None
-        for col in range(self.table_widget.columnCount()):
-            if self.table_widget.horizontalHeaderItem(col).text() == "型号":
-                id_col = col
-                break
-
-        if id_col is None:
-            print("Error: '型号' column not found!")
-            return
-
-        rug_id = self.table_widget.item(row, id_col).text()
-        records = self.db_manager.fetch_records(rug_id)
-
-        # 此处不再需要将记录转换为字符串，直接将列表传递给RecordDialog
-        # records 已经是一个列表，每个元素代表一条记录，每条记录也是一个列表
-
-        record_dialog = RecordDialog(self, rug_id, records)
-        record_dialog.exec_()
-
-
     def update_note(self, row, rug_id, new_note, old_note):
         try:
             # 更新数据库中的备注信息
@@ -559,6 +541,51 @@ class App(QMainWindow):
             self.table_widget.setItem(row, self.note_index, note_item)
         except mysql.connector.Error as err:
             print(f"Error updating note: {err}")
+
+    def show_editProduct_dialog(self, row):
+        if self.logged != 1:
+            QMessageBox.warning(self, '警告', '您未登录，无法修改产品数据！')
+            return
+        id_col = None
+        for col in range(self.table_widget.columnCount()):
+            if self.table_widget.horizontalHeaderItem(col).text() == "型号":
+                id_col = col
+                break
+        if id_col is None:
+            print("Error: '型号' column not found!")
+            return
+        rug_id = self.table_widget.item(row, id_col).text()
+        old_info = self.db_manager.fetch_rug_by_id(rug_id)
+        editProduct_dialog = EditProductDialog(self, old_info)
+        result = editProduct_dialog.exec_()
+        if result == QDialog.Accepted:
+            new_info = editProduct_dialog.get_product_data()
+            self.update_product(row, rug_id, new_info, old_info)
+
+    def update_product(self, old_rug_id, new_info, old_info):
+        self.db_manager.update_rug_info(old_rug_id, new_info)
+        
+        self.refreshWindow()
+
+    def show_record_dialog(self, row):
+        id_col = None
+        for col in range(self.table_widget.columnCount()):
+            if self.table_widget.horizontalHeaderItem(col).text() == "型号":
+                id_col = col
+                break
+
+        if id_col is None:
+            print("Error: '型号' column not found!")
+            return
+
+        rug_id = self.table_widget.item(row, id_col).text()
+        records = self.db_manager.fetch_records(rug_id)
+
+        # 此处不再需要将记录转换为字符串，直接将列表传递给RecordDialog
+        # records 已经是一个列表，每个元素代表一条记录，每条记录也是一个列表
+
+        record_dialog = RecordDialog(self, rug_id, records)
+        record_dialog.exec_()
 
 
     def search_item(self):

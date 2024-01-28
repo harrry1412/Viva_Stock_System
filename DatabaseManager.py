@@ -1,6 +1,8 @@
 import configparser
 from datetime import datetime
 import mysql.connector
+from mysql.connector import Error
+from mysql.connector.cursor import MySQLCursorDict
 from mysql.connector import pooling
 
 
@@ -47,6 +49,22 @@ class DatabaseManager:
         conn.close()
         return rows
     
+    def fetch_rug_by_id(self, rug_id):
+        conn = self.connect()
+        try:
+            cursor = conn.cursor(dictionary=True)  # 使用字典格式的游标
+            query = "SELECT * FROM rug WHERE id = %s"
+            cursor.execute(query, (rug_id,))
+            rug_data = cursor.fetchall()
+            if rug_data:
+                return rug_data[0]  # 返回第一条记录作为字典
+        except Exception as e:
+            print(f"Error fetching rug data: {e}")
+        finally:
+            if conn.is_connected():
+                conn.close()
+        return None
+    
     def fetch_ordered_rugs(self, key, direction):
         # 首先验证 key 是一个有效的列名
         valid_keys = ['id', 'qty', 'supplier', 'note', 'image']
@@ -68,8 +86,6 @@ class DatabaseManager:
         conn.close()
         return rows
 
-
-    
     def fetch_records(self, id):
         conn = self.connect()
         cursor = conn.cursor()
@@ -180,4 +196,31 @@ class DatabaseManager:
 
         conn.close()
         return records
+
+    def update_rug_info(self, old_model_id, new_rug_data):
+        conn = self.connect()
+        cursor = conn.cursor()
+        update_query = """
+        UPDATE rug
+        SET id = %s, supplier = %s, category = %s, image = %s
+        WHERE id = %s
+        """
+        try:
+            # 执行更新操作
+            cursor.execute(update_query, (
+                new_rug_data['model'],
+                new_rug_data['supplier'],
+                new_rug_data['category'],
+                new_rug_data['image'],
+                old_model_id
+            ))
+            conn.commit()
+            return True
+        except mysql.connector.Error as err:
+            print(f"Error updating rug: {err}")
+            return False
+        finally:
+            if conn.is_connected():
+                conn.close()
+
 
