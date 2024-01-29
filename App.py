@@ -32,7 +32,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.2.0'
+        self.version='V5.3.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -565,8 +565,9 @@ class App(QMainWindow):
             new_info = editProduct_dialog.get_product_data()
             if new_info:
                 success=self.update_product_to_database(rug_id, new_info, old_info)
-                if success:
-                    editProduct_dialog.copy_images_to_folder()
+                if success and self.user!='admin':
+                    date=datetime.datetime.now()
+                    self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
                 self.refresh_window()
 
     def update_product_to_database(self, old_rug_id, new_info, old_info):

@@ -13,7 +13,6 @@ class EditProductDialog(QDialog):
         if old_info==None:
             old_info={}
         self.old_info=old_info
-        print(self.old_info)
         super().__init__(parent)
         self.setWindowTitle('编辑产品')
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
@@ -165,11 +164,23 @@ class EditProductDialog(QDialog):
             return
 
         # 检查model（id）是否重复
-        old_model=self.old_info['id']
-        if model!=old_model:
+        old_model = self.old_info['id']
+        if model != old_model:
             if self.parent().db_manager.id_exists(model):
                 QMessageBox.warning(self, '警告', '该型号已存在，请使用不同的型号。')
                 return
 
+        # 如果没有选择新图片，重命名原图片
+        if self.selected_image_path == '':
+            old_image_path = os.path.join("//VIVA303-WORK/Viva店面共享/StockImg", self.old_info['image'])
+            new_image_path = os.path.join("//VIVA303-WORK/Viva店面共享/StockImg", model + ".png")
+            if os.path.exists(old_image_path):
+                os.rename(old_image_path, new_image_path)
+
+        # 如果有新图片，则调用已有的复制图片逻辑
+        else:
+            self.copy_images_to_folder()
+
         # 如果所有检查都通过，接受对话框并关闭
         self.accept()
+

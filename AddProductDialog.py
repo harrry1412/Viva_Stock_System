@@ -179,7 +179,7 @@ class AddProductDialog(QDialog):
 
         # 一切检查通过后，返回产品数据
         date = datetime.datetime.now()
-        user = parent.user if parent else '未知用户'  # 如果 parent 不存在，使用默认用户
+        user = parent.user
         return (model, int(quantity), category, supplier, note, image, date, user)
 
     

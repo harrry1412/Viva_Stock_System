@@ -149,6 +149,21 @@ class DatabaseManager:
         cursor.close()
         conn.close()
 
+    def insert_edit_product_record(self, user, old, new, date):
+        conn = self.connect()
+        cursor = conn.cursor()
+        insert_query = """
+        INSERT INTO edit_product_record (usr, old_info, new_info, editdate) 
+        VALUES (%s, %s, %s, %s)
+        """
+        # 执行插入操作
+        cursor.execute(insert_query, (user, old, new, date))
+        # 提交更改
+        conn.commit()
+        # 关闭连接
+        cursor.close()
+        conn.close()
+
 
     def insert_product(self, product_data):
         for data in product_data:
