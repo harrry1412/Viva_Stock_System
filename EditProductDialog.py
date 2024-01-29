@@ -17,7 +17,7 @@ class EditProductDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle('编辑产品')
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.setFixedSize(600, 600)
+        self.setFixedSize(400, 400)
         self.layout = QVBoxLayout()
 
         font = QFont()
@@ -50,14 +50,24 @@ class EditProductDialog(QDialog):
             self.category_input.addItem(category)
 
         # 设置字体
-        for widget in [self.model_label, self.supplier_label, self.category_label, self.image_label,
-                       self.model_input, self.supplier_input, self.category_input, self.add_image_button]:
-            widget.setFont(font)
+        self.model_label.setFont(font)
+        self.supplier_label.setFont(font)
+        self.category_label.setFont(font)
+        self.image_label.setFont(font)
+        self.model_input.setFont(font)
+        self.supplier_input.setFont(font)
+        self.category_input.setFont(font)
+        self.add_image_button.setFont(font)
 
         # 布局
-        for widget in [self.model_label, self.model_input, self.supplier_label, self.supplier_input,
-                       self.category_label, self.category_input, self.image_label, self.add_image_button]:
-            self.layout.addWidget(widget)
+        self.layout.addWidget(self.model_label)
+        self.layout.addWidget(self.model_input)
+        self.layout.addWidget(self.supplier_label)
+        self.layout.addWidget(self.supplier_input)
+        self.layout.addWidget(self.category_label)
+        self.layout.addWidget(self.category_input)
+        self.layout.addWidget(self.image_label)
+        self.layout.addWidget(self.add_image_button)
 
         button_layout = QHBoxLayout()
         self.save_button = QPushButton('保存')
@@ -107,6 +117,7 @@ class EditProductDialog(QDialog):
             model = self.model_input.text().strip().replace('/', '-')
             self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
             self.image_name = os.path.basename(self.new_image_path)
+            self.image_label.setText('图片: 图片已上传')
 
     def copy_images_to_folder(self):
         # 如果任一路径为None，方法不执行任何操作

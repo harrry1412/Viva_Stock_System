@@ -32,7 +32,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.0.0'
+        self.version='V5.2.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -465,7 +465,8 @@ class App(QMainWindow):
             user = self.user
             
             edit_date=datetime.datetime.now()
-            self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date, edit_date)
+            if user!='admin':
+                self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date, edit_date)
             self.update_quantity(row, rug_id, new_quantity)
 
     def update_quantity(self, row, rug_id, new_quantity):
@@ -532,7 +533,9 @@ class App(QMainWindow):
 
             #Update note_record in database
             date=datetime.datetime.now()
-            self.db_manager.insert_note_record(rug_id, self.user, old_note, new_note, date)
+            user=self.user
+            if user!='admin':
+                self.db_manager.insert_note_record(rug_id, user, old_note, new_note, date)
 
             # 更新表格中的备注信息
             note_item = QTableWidgetItem(new_note)
@@ -808,7 +811,7 @@ class App(QMainWindow):
     def login_successful(self, username):
         # 在这里添加登录成功后的操作
         print("登录成功!")
-        self.user=username
+        self.user=username.strip()
         self.welcome_label.setText('Welcome '+username)
         self.login_button.setText('登出')
         self.logged=1

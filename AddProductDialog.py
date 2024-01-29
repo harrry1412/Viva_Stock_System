@@ -9,7 +9,6 @@ from PyQt5.QtCore import Qt
 import datetime
 
 
-
 class AddProductDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -30,7 +29,7 @@ class AddProductDialog(QDialog):
         self.model_label = QLabel('型号:')
         self.quantity_label = QLabel('数量:')
         self.supplier_label = QLabel('供货商:')
-        self.category_label = QLabel('产品类别:')  # 新增产品类别标签
+        self.category_label = QLabel('产品类别:')
         self.note_label = QLabel('备注:')
         self.image_label = QLabel('图片:')
 
@@ -39,21 +38,24 @@ class AddProductDialog(QDialog):
         # 创建供货商输入框
         self.supplier_input = QComboBox()
         self.supplier_input.setEditable(True)  # 允许用户手动输入
+        
+        self.category_input = QComboBox()
+        self.category_input.setEditable(True)  # 允许用户手动输入
 
         # 添加一个空的选项作为默认选项
-        self.supplier_input.addItem("")  # 添加一个空字符串作为默认选项
+        self.supplier_input.addItem("")
+        self.category_input.addItem("")
 
         # 填充供货商组合框选项
         suppliers = self.parent().get_suppliers() 
         for supplier in suppliers:
             self.supplier_input.addItem(supplier)
-        self.category_input = QComboBox()
-        self.category_input.setEditable(True)  # 允许用户手动输入
 
         # 填充组合框选项
         categories = self.parent().get_categories()
         for category in categories:
             self.category_input.addItem(category)
+
         self.note_input = QPlainTextEdit()
         self.add_image_button = QPushButton('选择图片')
 
@@ -79,8 +81,8 @@ class AddProductDialog(QDialog):
         self.layout.addWidget(self.quantity_input)
         self.layout.addWidget(self.supplier_label)
         self.layout.addWidget(self.supplier_input)
-        self.layout.addWidget(self.category_label)  # 新增产品类别布局
-        self.layout.addWidget(self.category_input)  # 新增产品类别布局
+        self.layout.addWidget(self.category_label)
+        self.layout.addWidget(self.category_input)
         self.layout.addWidget(self.note_label)
         self.layout.addWidget(self.note_input)
         self.layout.addWidget(self.image_label)
@@ -128,6 +130,8 @@ class AddProductDialog(QDialog):
             model = self.model_input.text().strip().replace('/', '-')
             self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
             self.image_name = os.path.basename(self.new_image_path)
+
+            self.image_label.setText('图片: 图片已上传')
             
 
     def copy_images_to_folder(self):
