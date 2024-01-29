@@ -137,18 +137,26 @@ class AddProductDialog(QDialog):
             print(self.new_image_path)
             shutil.copy(self.selected_image_path, self.new_image_path)
 
-    from PyQt5.QtWidgets import QMessageBox
-
     def get_product_data(self, parent=None):
         model = self.model_input.text().strip()  # 获取型号输入框的文本内容
         quantity = self.quantity_input.text().strip()  # 获取数量输入框的文本内容
         supplier = self.supplier_input.currentText().strip()  # 获取供货商输入框的文本内容
-        category = self.category_input.currentText().strip()
+        category = self.category_input.currentText().strip()  # 获取产品类别输入框的文本内容
         note = self.note_input.toPlainText().strip()  # 获取备注输入框的文本内容
 
         # 检查型号和数量是否为空
         if not model or not quantity:
             QMessageBox.warning(self, '警告', '型号和数量不能为空')
+            return None
+
+        # 检查供货商是否为空
+        if not supplier:
+            QMessageBox.warning(self, '警告', '供货商不能为空')
+            return None
+        
+        # 检查类别是否为空
+        if not category:
+            QMessageBox.warning(self, '警告', '产品类别不能为空')
             return None
 
         # 检查数量是否为整数
@@ -161,13 +169,13 @@ class AddProductDialog(QDialog):
             QMessageBox.warning(self, '警告', '型号已经存在')
             return None
 
-
         image = self.image_name
-        if (image==''):
-            image=model+'.png'
+        if image == '':
+            image = model + '.png'
 
         # 一切检查通过后，返回产品数据
-            date=datetime.datetime.now()
-            user=parent.user
+        date = datetime.datetime.now()
+        user = parent.user if parent else '未知用户'  # 如果 parent 不存在，使用默认用户
         return (model, int(quantity), category, supplier, note, image, date, user)
+
     

@@ -32,7 +32,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V4.3.0'
+        self.version='V5.0.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -165,10 +165,10 @@ class App(QMainWindow):
         self.filter_button.clicked.connect(self.show_filter_dialog)  # 连接筛选按钮的点击事件
         self.add_button.clicked.connect(self.show_add_product_dialog)
         self.export_button.clicked.connect(self.export_to_excel)
-        self.about_button.clicked.connect(self.showAboutDialog)
-        self.login_button.clicked.connect(self.clickLogin)
+        self.about_button.clicked.connect(self.show_about_dialog)
+        self.login_button.clicked.connect(self.click_login)
         self.order_button.clicked.connect(self.show_order_dialog)
-        self.refresh_button.clicked.connect(self.refreshWindow)
+        self.refresh_button.clicked.connect(self.refresh_window)
 
         # 获取表的水平表头
         header = self.table_widget.horizontalHeader()
@@ -177,7 +177,7 @@ class App(QMainWindow):
         header.setSectionResizeMode(QHeaderView.Stretch)
 
         # 设置所有列号
-        self.setAllColumnIndex()
+        self.set_all_column_index()
 
         
         header.setSectionResizeMode(self.image_index, QHeaderView.Interactive)
@@ -192,7 +192,7 @@ class App(QMainWindow):
         header.resizeSection(self.qty_index, 100)
 
         # 启用表格排序
-        self.table_widget.horizontalHeader().sectionClicked.connect(self.onHeaderClicked)
+        self.table_widget.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
 
         self.showMaximized()  # 最大化窗口
 
@@ -203,7 +203,7 @@ class App(QMainWindow):
     def on_search_input_clicked(self):
         self.search_input.selectAll()  # 选中所有文本
 
-    def onHeaderClicked(self, logicalIndex):
+    def on_header_clicked(self, logicalIndex):
         # 检查被点击的列是否是可排序的列
         if logicalIndex in [self.id_index, self.category_index, self.supplier_index, self.qty_index]: 
             # '型号', '供货商', '数量' 列的排序键
@@ -219,7 +219,7 @@ class App(QMainWindow):
                 self.sorting_states[logicalIndex] = 'ASC'
             elif self.sorting_states.get(logicalIndex) == 'ASC':
                 # 如果当前是升序，恢复默认顺序
-                self.restoreOrder()
+                self.restore_order()
                 self.sorting_states[logicalIndex] = 'default'
             else:
                 # 如果当前是默认顺序或未设置，切换到降序
@@ -292,7 +292,7 @@ class App(QMainWindow):
         self.thread_pool.start(fetcher)
 
     def on_data_fetched(self, filtered_rows):
-        self.setAllColumnIndex()
+        self.set_all_column_index()
 
         self.image_paths = {}
         self.table_widget.setRowCount(len(filtered_rows))
@@ -560,12 +560,37 @@ class App(QMainWindow):
         result = editProduct_dialog.exec_()
         if result == QDialog.Accepted:
             new_info = editProduct_dialog.get_product_data()
-            self.update_product(row, rug_id, new_info, old_info)
+            if new_info:
+                success=self.update_product_to_database(rug_id, new_info, old_info)
+                if success:
+                    editProduct_dialog.copy_images_to_folder()
+                self.refresh_window()
 
-    def update_product(self, old_rug_id, new_info, old_info):
-        self.db_manager.update_rug_info(old_rug_id, new_info)
-        
-        self.refreshWindow()
+    def update_product_to_database(self, old_rug_id, new_info, old_info):
+        success=self.db_manager.update_rug_info(old_rug_id, new_info)
+        return success
+
+    def show_add_product_dialog(self):
+        # 首先检测全局变量logged是否为1
+        if self.logged != 1:
+            QMessageBox.warning(self, '警告', '您未登录，无法添加新品！')
+            return
+
+        add_product_dialog = AddProductDialog(self)
+        result = add_product_dialog.exec_()
+        if result == QDialog.Accepted:
+            product_data = add_product_dialog.get_product_data(self)
+            if product_data:
+                # 注意，此处我们不再直接复制图片，而是传递图片路径给数据库添加函数
+                success = self.add_product_to_database(product_data)
+                if success:
+                    # 数据库添加成功，现在可以复制图片
+                    add_product_dialog.copy_images_to_folder()
+                self.refresh_window()
+    
+    def add_product_to_database(self, product_data):
+        success=self.db_manager.insert_product(product_data)
+        return success
 
     def show_record_dialog(self, row):
         id_col = None
@@ -687,7 +712,7 @@ class App(QMainWindow):
         if not selected_suppliers and not selected_categories:
             self.filtered_suppliers = []
             self.filtered_categories = []
-            self.resetApplication()
+            self.reset_application()
         else:
             # 取消所有正在进行的图片加载
             for loader in self.image_loaders:
@@ -704,11 +729,11 @@ class App(QMainWindow):
     def show_order_dialog(self):
         order_dialog=OrderDialog(self)
         order_dialog.orderApplied.connect(self.apply_order)
-        order_dialog.orderRestored.connect(self.restoreOrder)
+        order_dialog.orderRestored.connect(self.restore_order)
         order_dialog.exec_()
 
-    def restoreOrder(self):
-        self.resetApplication()
+    def restore_order(self):
+        self.reset_application()
 
     def apply_order(self, selected_order_key, order_direction):
         # 取消所有正在进行的图片加载
@@ -723,7 +748,7 @@ class App(QMainWindow):
         self.populate_table()
 
 
-    def clickLogin(self):
+    def click_login(self):
         if (self.logged==1):
             self.logout()
         else:
@@ -790,31 +815,8 @@ class App(QMainWindow):
 
     def show_error_message(self, title, message):
         QMessageBox.warning(self, title, message)
-
-
-    def show_add_product_dialog(self):
-        # 首先检测全局变量logged是否为1
-        if self.logged != 1:
-            QMessageBox.warning(self, '警告', '您未登录，无法添加新品！')
-            return
-
-        add_product_dialog = AddProductDialog(self)
-        result = add_product_dialog.exec_()
-        if result == QDialog.Accepted:
-            product_data = add_product_dialog.get_product_data(self)
-            if product_data:
-                # 注意，此处我们不再直接复制图片，而是传递图片路径给数据库添加函数
-                success = self.add_product_to_database(product_data)
-                if success:
-                    # 数据库添加成功，现在可以复制图片
-                    add_product_dialog.copy_images_to_folder()
-                self.populate_table()
     
-    def add_product_to_database(self, product_data):
-        success=self.db_manager.insert_product(product_data)
-        return success
-    
-    def showAboutDialog(self):
+    def show_about_dialog(self):
         about_dialog = AboutDialog(self, self.version)
         about_dialog.exec_()
 
@@ -881,7 +883,7 @@ class App(QMainWindow):
                 except Exception as e:
                     QMessageBox.warning(self, '导出失败', f'导出时出现错误: {str(e)}')
 
-    def setAllColumnIndex(self):
+    def set_all_column_index(self):
         self.image_index=self.get_column_index_by_name('图片')
         self.id_index=self.get_column_index_by_name('型号')
         self.category_index=self.get_column_index_by_name('类型')
@@ -891,14 +893,14 @@ class App(QMainWindow):
         self.record_index=self.get_column_index_by_name('记录')
         self.action_index=self.get_column_index_by_name('操作')
     
-    def refreshWindow(self):
+    def refresh_window(self):
         self.filtered_suppliers=[]
         self.filtered_categories=[]
-        self.resetApplication()
+        self.reset_application()
 
-    def resetApplication(self):
+    def reset_application(self):
         # 停止所有后台线程
-        self.cancelBackgroundTasks()
+        self.cancel_background_tasks()
 
         # 清除并重置界面元素
         self.table_widget.clearContents()
@@ -912,7 +914,7 @@ class App(QMainWindow):
         self.order_key='none'
         self.populate_table()
 
-    def cancelBackgroundTasks(self):
+    def cancel_background_tasks(self):
         # 停止图片加载器
         for loader in self.image_loaders:
             loader.cancel()
@@ -923,25 +925,17 @@ class App(QMainWindow):
         self.full_size_image_thread_pool.clear()
         self.record_thread_pool.clear()
 
-    def closeEvent(self, event):
+    def close_event(self, event):
         # 隐藏窗口而不是关闭
         self.hide()
-        # 你可以选择在此处通知用户程序将继续运行
-        # 直到所有线程完成
-        # ...
-
-        # 不要在这里等待线程完成
-        # 改为让应用程序在退出前自动处理线程完成
-
-        # 让事件继续传播，以便窗口关闭操作继续
         event.ignore()
 
         # 启动一个定时器，定期检查线程池是否空闲，如果是，则退出应用程序
         self.shutdown_timer = QTimer(self)  # 创建一个新的定时器
         self.shutdown_timer.start(1000)  # 设置定时器每秒触发一次
-        self.shutdown_timer.timeout.connect(self.checkThreadPool)
+        self.shutdown_timer.timeout.connect(self.check_thread_pool)
 
-    def checkThreadPool(self):
+    def check_thread_pool(self):
         if self.thread_pool.activeThreadCount() == 0:
             # 线程完成了，可以安全退出了
             QApplication.quit()

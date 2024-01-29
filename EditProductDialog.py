@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+import shutil
 
 
 class EditProductDialog(QDialog):
@@ -37,6 +38,16 @@ class EditProductDialog(QDialog):
         self.category_input.setEditable(True)
         self.supplier_input.addItem("")
         self.category_input.addItem("")
+
+        # 填充供货商组合框选项
+        suppliers = self.parent().get_suppliers() 
+        for supplier in suppliers:
+            self.supplier_input.addItem(supplier)
+
+        # 填充组合框选项
+        categories = self.parent().get_categories()
+        for category in categories:
+            self.category_input.addItem(category)
 
         # 设置字体
         for widget in [self.model_label, self.supplier_label, self.category_label, self.image_label,
@@ -97,6 +108,13 @@ class EditProductDialog(QDialog):
             self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
             self.image_name = os.path.basename(self.new_image_path)
 
+    def copy_images_to_folder(self):
+        # 如果任一路径为None，方法不执行任何操作
+        if self.selected_image_path != '' and self.new_image_path != '':
+            print(self.selected_image_path)
+            print(self.new_image_path)
+            shutil.copy(self.selected_image_path, self.new_image_path)
+
 
     def get_product_data(self):
         # 获取并验证输入数据
@@ -136,9 +154,11 @@ class EditProductDialog(QDialog):
             return
 
         # 检查model（id）是否重复
-        if self.parent().db_manager.id_exists(model):
-            QMessageBox.warning(self, '警告', '该型号已存在，请使用不同的型号。')
-            return
+        old_model=self.old_info['id']
+        if model!=old_model:
+            if self.parent().db_manager.id_exists(model):
+                QMessageBox.warning(self, '警告', '该型号已存在，请使用不同的型号。')
+                return
 
         # 如果所有检查都通过，接受对话框并关闭
         self.accept()
