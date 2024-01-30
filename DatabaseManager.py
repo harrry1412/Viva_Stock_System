@@ -1,8 +1,5 @@
 import configparser
-from datetime import datetime
 import mysql.connector
-from mysql.connector import Error
-from mysql.connector.cursor import MySQLCursorDict
 from mysql.connector import pooling
 
 

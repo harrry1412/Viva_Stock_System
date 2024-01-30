@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QTimer
+from pypinyin import lazy_pinyin
 
 from DatabaseManager import DatabaseManager
 from EditQuantityDialog import EditQuantityDialog
@@ -32,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.3.5'
+        self.version='V5.3.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -234,11 +235,13 @@ class App(QMainWindow):
     def get_suppliers(self):
         if self.supplier_list is None:
             self.supplier_list = self.db_manager.fetch_supplier()
+            self.supplier_list.sort(key=lambda x: lazy_pinyin(x))
         return self.supplier_list
-    
+
     def get_categories(self):
         if self.category_list is None:
             self.category_list = self.db_manager.fetch_category()
+            self.category_list.sort(key=lambda x: lazy_pinyin(x))
         return self.category_list
 
     def handle_cell_clicked(self, row, column):
