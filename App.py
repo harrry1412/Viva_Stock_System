@@ -32,7 +32,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.3.1'
+        self.version='V5.3.2'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -806,11 +806,10 @@ class App(QMainWindow):
 
     def login_successful(self, username):
         # 在这里添加登录成功后的操作
-        print("登录成功!")
-        self.user=username.strip()
-        self.welcome_label.setText('Welcome '+username)
+        self.user = username.strip().capitalize()
+        self.welcome_label.setText('Welcome, ' + self.user)
         self.login_button.setText('登出')
-        self.logged=1
+        self.logged = 1
 
     def show_error_message(self, title, message):
         QMessageBox.warning(self, title, message)
