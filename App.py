@@ -32,7 +32,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.3.0'
+        self.version='V5.3.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -57,7 +57,7 @@ class App(QMainWindow):
         self.user='Guest'
         self.table_widget.cellDoubleClicked.connect(self.handle_cell_clicked)
         self.image_paths = {}  # 添加字典来存储图片路径
-        self.last_search = ""
+        self.last_search = ''
         self.image_loaders = []  # 用于存储 ImageLoader 实例
         self.sorting_states = {}  # 添加属性来保存默认行顺序
         self.sorting_states = {1: 'default', 2: 'default', 3: 'default'} # 初始化排序状态为默认
@@ -564,13 +564,13 @@ class App(QMainWindow):
         if result == QDialog.Accepted:
             new_info = editProduct_dialog.get_product_data()
             if new_info:
-                success=self.update_product_to_database(rug_id, new_info, old_info)
+                success=self.update_product_to_database(rug_id, new_info)
                 if success and self.user!='admin':
                     date=datetime.datetime.now()
                     self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
                 self.refresh_window()
 
-    def update_product_to_database(self, old_rug_id, new_info, old_info):
+    def update_product_to_database(self, old_rug_id, new_info):
         success=self.db_manager.update_rug_info(old_rug_id, new_info)
         return success
 
@@ -585,7 +585,6 @@ class App(QMainWindow):
         if result == QDialog.Accepted:
             product_data = add_product_dialog.get_product_data(self)
             if product_data:
-                # 注意，此处我们不再直接复制图片，而是传递图片路径给数据库添加函数
                 success = self.add_product_to_database(product_data)
                 if success:
                     # 数据库添加成功，现在可以复制图片
@@ -610,9 +609,6 @@ class App(QMainWindow):
         rug_id = self.table_widget.item(row, id_col).text()
         records = self.db_manager.fetch_records(rug_id)
 
-        # 此处不再需要将记录转换为字符串，直接将列表传递给RecordDialog
-        # records 已经是一个列表，每个元素代表一条记录，每条记录也是一个列表
-
         record_dialog = RecordDialog(self, rug_id, records)
         record_dialog.exec_()
 
@@ -622,9 +618,8 @@ class App(QMainWindow):
         if not search_text:
             return
 
-        # 检查当前搜索关键词是否与上一次搜索的关键词相同
         if search_text == self.last_search:
-            # 如果有搜索结果，并且当前关键词未变，则跳转到下一个搜索结果
+            # if search key word same, show next search result
             if self.search_results:
                 self.show_next_result()
                 return
@@ -916,6 +911,7 @@ class App(QMainWindow):
 
         # 重新加载数据
         self.order_key='none'
+        self.last_search=''
         self.populate_table()
 
     def cancel_background_tasks(self):
