@@ -131,7 +131,10 @@ class EditProductDialog(QDialog):
         model = self.model_input.text().strip()
         supplier = self.supplier_input.currentText().strip()
         category = self.category_input.currentText().strip()
-        image = model+'.png'
+
+        image = self.image_name
+        if image == '':
+            image = model+'.png'
 
         if not model:
             QMessageBox.warning(self, '警告', '型号不能为空')
@@ -176,10 +179,6 @@ class EditProductDialog(QDialog):
             new_image_path = os.path.join("//VIVA303-WORK/Viva店面共享/StockImg", model + ".png")
             if os.path.exists(old_image_path):
                 os.rename(old_image_path, new_image_path)
-
-        # 如果有新图片，则调用已有的复制图片逻辑
-        else:
-            self.copy_images_to_folder()
 
         # 如果所有检查都通过，接受对话框并关闭
         self.accept()
