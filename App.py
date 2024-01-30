@@ -924,7 +924,8 @@ class App(QMainWindow):
         self.full_size_image_thread_pool.clear()
         self.record_thread_pool.clear()
 
-    def close_event(self, event):
+    # overwrite build in closeEvent method
+    def closeEvent(self, event):
         # 隐藏窗口而不是关闭
         self.hide()
         event.ignore()
