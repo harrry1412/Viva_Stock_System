@@ -209,6 +209,15 @@ class DatabaseManager:
         conn.close()
         return records
 
+    def update_note(self, note, rug_id):
+        conn = self.connect()
+        cursor = conn.cursor()
+        update_query="UPDATE rug SET note = %s WHERE id = %s"
+        cursor.execute(update_query, (note, rug_id))
+        conn.commit()
+        conn.close()
+
+
     def update_rug_info(self, old_model_id, new_rug_data):
         conn = self.connect()
         cursor = conn.cursor()

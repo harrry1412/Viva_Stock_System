@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.3.6'
+        self.version='V5.4.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -527,17 +527,12 @@ class App(QMainWindow):
     def update_note(self, row, rug_id, new_note, old_note):
         try:
             # 更新数据库中的备注信息
-            conn = self.db_manager.connect()
-            cursor = conn.cursor()
-            update_query = "UPDATE rug SET note = %s WHERE id = %s"
-            cursor.execute(update_query, (new_note, rug_id))
-            conn.commit()
-            conn.close()
+            self.db_manager.update_note(new_note, rug_id)
 
             #Update note_record in database
             date=datetime.datetime.now()
             user=self.user
-            if user!='admin':
+            if user!='admin' and new_note!=old_note:
                 self.db_manager.insert_note_record(rug_id, user, old_note, new_note, date)
 
             # 更新表格中的备注信息
