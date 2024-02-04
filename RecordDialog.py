@@ -17,8 +17,8 @@ class RecordDialog(QDialog):
 
         self.layout = QVBoxLayout()
         self.table = QTableWidget()
-        self.table.setColumnCount(4)  
-        self.table.setHorizontalHeaderLabels(['型号', '开单日期', '修改人', '内容'])
+        self.table.setColumnCount(5)  
+        self.table.setHorizontalHeaderLabels(['型号', '开单日期', '修改人', '内容', 'Edittime'])
         self.table.setRowCount(len(records))
 
         # 添加记录到表格中
@@ -31,6 +31,8 @@ class RecordDialog(QDialog):
             self.table.setItem(i, 1, QTableWidgetItem(date_str))
             self.table.setItem(i, 2, QTableWidgetItem(record[2]))
             self.table.setItem(i, 3, QTableWidgetItem(f"{record[4]} -> {record[5]}: {record[3]}"))
+            self.table.setItem(i, 4, QTableWidgetItem(str(record[6])))
+            self.table.setColumnHidden(4, True)
             self.table.resizeRowToContents(i)  # 调整行高以适应内容
 
         # 设置前三列的宽度和最后一列的伸缩策略
