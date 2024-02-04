@@ -163,7 +163,7 @@ class App(QMainWindow):
         self.search_input.clicked.connect(self.on_search_input_clicked)  # 连接信号到槽函数
         self.prev_result_button.clicked.connect(self.show_previous_result)
         self.next_result_button.clicked.connect(self.show_next_result)
-        self.filter_button.clicked.connect(self.show_filter_dialog)  # 连接筛选按钮的点击事件
+        self.filter_button.clicked.connect(self.show_filter_dialog)
         self.add_button.clicked.connect(self.show_add_product_dialog)
         self.export_button.clicked.connect(self.export_to_excel)
         self.about_button.clicked.connect(self.show_about_dialog)
@@ -465,7 +465,6 @@ class App(QMainWindow):
             item = self.table_widget.item(row, self.record_index)
             item.setText(str(record_str))
         except Exception as e:
-            # 可以添加错误处理逻辑
             pass
 
 
@@ -570,6 +569,18 @@ class App(QMainWindow):
 
         record_dialog = RecordDialog(self, rug_id, records)
         record_dialog.exec_()
+
+    def delete_record(self, rug_id, editdate):
+        if self.logged != 1:
+            QMessageBox.warning(self, '警告', '您未登录，无法删除记录。')
+            return
+        permission=self.db_manager.check_user_permission(self.user, 'delete_record')
+        if not permission:
+            QMessageBox.warning(self, '警告', '账户权限不足，无法删除记录。')
+            return
+        date_now=datetime.datetime.now()
+        success=self.db_manager.delete_record(rug_id, self.user, editdate, date_now)
+        return success
 
 
     def search_item(self):

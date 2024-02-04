@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 import sys
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QPushButton, QTableWidget,
-                             QTableWidgetItem, QHeaderView, QAbstractItemView)
+                             QTableWidgetItem, QHeaderView, QAbstractItemView, QMenu)
 
 class RecordDialog(QDialog):
     def __init__(self, parent=None, rug_id="", records=[]):
@@ -21,6 +21,9 @@ class RecordDialog(QDialog):
         self.table.setHorizontalHeaderLabels(['型号', '开单日期', '修改人', '内容', 'Edittime'])
         self.table.setRowCount(len(records))
 
+        self.table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self.showContextMenu)
+
         # 添加记录到表格中
         for i, record in enumerate(records):
             item = QTableWidgetItem(record[0])
@@ -33,7 +36,7 @@ class RecordDialog(QDialog):
             self.table.setItem(i, 3, QTableWidgetItem(f"{record[4]} -> {record[5]}: {record[3]}"))
             self.table.setItem(i, 4, QTableWidgetItem(str(record[6])))
             self.table.setColumnHidden(4, True)
-            self.table.resizeRowToContents(i)  # 调整行高以适应内容
+            self.table.resizeRowToContents(i)
 
         # 设置前三列的宽度和最后一列的伸缩策略
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
@@ -58,3 +61,30 @@ class RecordDialog(QDialog):
         self.layout.addWidget(self.close_button)
         self.setLayout(self.layout)
         self.rug_id = rug_id
+
+    def showContextMenu(self, pos):
+        index = self.table.indexAt(pos)
+        if index.isValid():
+            # 获取当前选中的行
+            selectedRows = self.table.selectionModel().selectedRows()
+            # 检查点击的行是否已经被选中
+            isSelected = any(index.row() == sr.row() for sr in selectedRows)
+            
+            # 如果点击在第3列，或者已经选中整行，则显示上下文菜单
+            if index.column() == 3 or isSelected:
+                contextMenu = QMenu(self)
+                deleteAction = contextMenu.addAction("删除记录")
+                action = contextMenu.exec_(self.table.viewport().mapToGlobal(pos))
+                if action == deleteAction:
+                    self.delete_record(index.row())
+
+
+    
+    def delete_record(self, row):
+        editdate = self.table.item(row, 4).text()
+        print('DELETED')
+        print(editdate)
+        success = self.parent().delete_record(self.rug_id, editdate)
+        
+        if success:
+            self.table.removeRow(row)

@@ -144,7 +144,6 @@ class EditQuantityDialog(QDialog):
     
     def get_selected_date(self):
         # 返回一个 QDate 对象，转换为字符串格式
-        print(self.date_input.date())
         return self.date_input.date().toString(Qt.ISODate)
 
     def increment_quantity(self):

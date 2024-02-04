@@ -86,7 +86,7 @@ class DatabaseManager:
     def fetch_records(self, id):
         conn = self.connect()
         cursor = conn.cursor()
-        query="SELECT id, dat, usr, content, bef, aft, editdate FROM record WHERE id=%s order by dat DESC"
+        query="SELECT id, dat, usr, content, bef, aft, editdate, deleted FROM record WHERE id=%s AND deleted=0 order by dat DESC"
         cursor.execute(query, (id,))
         rows = cursor.fetchall()
         conn.close()
@@ -200,7 +200,7 @@ class DatabaseManager:
         cursor = conn.cursor()
 
         # 编写 SQL 查询，用于获取与特定 rug_id 相关联的记录
-        query = "SELECT dat, content, bef, aft FROM record WHERE id = %s ORDER BY dat DESC"
+        query = "SELECT dat, content, bef, aft FROM record WHERE id = %s AND deleted=0 ORDER BY dat DESC"
         cursor.execute(query, (id,))
 
         # 获取查询结果
@@ -255,6 +255,29 @@ class DatabaseManager:
             return count > 0
         except Exception as e:
             print(f"Error checking user permission: {e}")
+            return False
+        finally:
+            conn.close()
+
+    def delete_record(self, id, user, date, now):
+        conn = self.connect()
+        cursor = conn.cursor()
+        query = """
+        UPDATE record
+        SET del_user = %s, 
+            del_date = %s,
+            deleted = 1
+        WHERE id=%s AND editdate = %s;
+        """
+        
+        try:
+            # 执行更新操作
+            cursor.execute(query, (user, now, id, date))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating record: {e}")
+            conn.rollback()  # 如果出现异常，回滚更改
             return False
         finally:
             conn.close()
