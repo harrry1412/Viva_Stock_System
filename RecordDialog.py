@@ -13,11 +13,11 @@ class RecordDialog(QDialog):
         else:
             self.setWindowIcon(QIcon('vivastock.ico'))
         self.setWindowFlags(self.windowFlags() | Qt.WindowMinMaxButtonsHint)
-        self.setMinimumSize(1200, 800)
+        self.setMinimumSize(800, 600)
 
         self.layout = QVBoxLayout()
         self.table = QTableWidget()
-        self.table.setColumnCount(4)  # 假设有四列数据
+        self.table.setColumnCount(4)  
         self.table.setHorizontalHeaderLabels(['型号', '开单日期', '修改人', '内容'])
         self.table.setRowCount(len(records))
 
@@ -34,11 +34,12 @@ class RecordDialog(QDialog):
             self.table.resizeRowToContents(i)  # 调整行高以适应内容
 
         # 设置前三列的宽度和最后一列的伸缩策略
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
 
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
         # 设置表格内容不可编辑
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 

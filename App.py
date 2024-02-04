@@ -245,6 +245,7 @@ class App(QMainWindow):
         return self.category_list
 
     def handle_cell_clicked(self, row, column):
+        self.set_all_column_index
         if column==self.image_index:
             self.show_full_size_image(row)
         elif column==self.qty_index:
@@ -424,34 +425,15 @@ class App(QMainWindow):
 
 
     def show_edit_quantity_dialog(self, row):
-        # 首先检测全局变量logged是否为1
         if self.logged != 1:
-            QMessageBox.warning(self, '警告', '您未登录，无法修改数量！')
+            QMessageBox.warning(self, '警告', '您未登录，无法修改数量。')
+            return
+        permission=self.db_manager.check_user_permission(self.user, 'edit_qty')
+        if not permission:
+            QMessageBox.warning(self, '警告', '账户权限不足，无法修改数量。')
             return
 
-        # 查找“数量”列的索引
-        quantity_col = None
-        for col in range(self.table_widget.columnCount()):
-            if self.table_widget.horizontalHeaderItem(col).text() == "数量":
-                quantity_col = col
-                break
-
-        # 查找“型号”列的索引
-        id_col = None
-        for col in range(self.table_widget.columnCount()):
-            if self.table_widget.horizontalHeaderItem(col).text() == "型号":
-                id_col = col
-                break
-
-        # 如果没有找到“数量”或“型号”列，返回或抛出一个错误
-        if quantity_col is None:
-            print("Error: '数量' column not found!")
-            return
-        if id_col is None:
-            print("Error: '型号' column not found!")
-            return
-
-        item = self.table_widget.item(row, quantity_col)
+        item = self.table_widget.item(row, self.qty_index)
         current_quantity = item.text()
 
         dialog = EditQuantityDialog(self, current_quantity)
@@ -462,9 +444,7 @@ class App(QMainWindow):
             bef=current_quantity
             aft=new_quantity
             selected_date = dialog.get_selected_date()  # 获取选择的日期
-            # 构造新的记录字符串，包括日期
-            # record = f"{current_quantity} -> {new_quantity}: {record}"
-            rug_id = self.table_widget.item(row, id_col).text()
+            rug_id = self.table_widget.item(row, self.id_index).text()
             user = self.user
             
             edit_date=datetime.datetime.now()
@@ -474,7 +454,7 @@ class App(QMainWindow):
 
     def update_quantity(self, row, rug_id, new_quantity):
         try:
-            self.db_manager.update_rug_quantity(rug_id, self.qty_index)
+            self.db_manager.update_rug_quantity(rug_id, new_quantity)
             item = self.table_widget.item(row, self.qty_index)
             item.setText(str(int(new_quantity)))
         except mysql.connector.Error as err:
@@ -490,17 +470,16 @@ class App(QMainWindow):
 
 
     def show_note_dialog(self, row):
-        id_col = None
-        for col in range(self.table_widget.columnCount()):
-            if self.table_widget.horizontalHeaderItem(col).text() == "型号":
-                id_col = col
-                break
-        if id_col is None:
-            print("Error: '型号' column not found!")
-            return
-        rug_id = self.table_widget.item(row, id_col).text()
+        permission_level=0
+        if self.logged == 1:
+            permission_level=1            
+        permission=self.db_manager.check_user_permission(self.user, 'add_product')
+        if permission:
+            permission_level=2
+
+        rug_id = self.table_widget.item(row, self.id_index).text()
         old_note = self.table_widget.item(row, self.note_index).text()
-        note_dialog = NoteDialog(self, rug_id, old_note, self.logged)
+        note_dialog = NoteDialog(self, rug_id, old_note, permission_level)
         result = note_dialog.exec_()
         if result == QDialog.Accepted:
             new_note = note_dialog.get_new_note()
@@ -527,15 +506,12 @@ class App(QMainWindow):
         if self.logged != 1:
             QMessageBox.warning(self, '警告', '您未登录，无法修改产品数据！')
             return
-        id_col = None
-        for col in range(self.table_widget.columnCount()):
-            if self.table_widget.horizontalHeaderItem(col).text() == "型号":
-                id_col = col
-                break
-        if id_col is None:
-            print("Error: '型号' column not found!")
+        permission=self.db_manager.check_user_permission(self.user, 'edit_product')
+        if not permission:
+            QMessageBox.warning(self, '警告', '账户权限不足，无法修改产品数据。')
             return
-        rug_id = self.table_widget.item(row, id_col).text()
+
+        rug_id = self.table_widget.item(row, self.id_index).text()
         old_info = self.db_manager.fetch_rug_by_id(rug_id)
         edit_product_dialog = EditProductDialog(self, old_info)
         result = edit_product_dialog.exec_()
@@ -555,9 +531,12 @@ class App(QMainWindow):
         return success
 
     def show_add_product_dialog(self):
-        # 首先检测全局变量logged是否为1
         if self.logged != 1:
-            QMessageBox.warning(self, '警告', '您未登录，无法添加新品！')
+            QMessageBox.warning(self, '警告', '您未登录，无法添加新品。')
+            return
+        permission=self.db_manager.check_user_permission(self.user, 'add_product')
+        if not permission:
+            QMessageBox.warning(self, '警告', '账户权限不足，无法添加新品。')
             return
 
         add_product_dialog = AddProductDialog(self)

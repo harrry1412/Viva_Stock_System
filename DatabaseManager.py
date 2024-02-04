@@ -244,4 +244,19 @@ class DatabaseManager:
             if conn.is_connected():
                 conn.close()
 
+    def check_user_permission(self, user, permission):
+        conn = self.connect()
+        cursor = conn.cursor()
+        query = "SELECT count(*) FROM user_permission WHERE usr=%s and permission=%s"
+        
+        try:
+            cursor.execute(query, (user, permission))
+            (count,) = cursor.fetchone()
+            return count > 0
+        except Exception as e:
+            print(f"Error checking user permission: {e}")
+            return False
+        finally:
+            conn.close()
+
 
