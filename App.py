@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.5.6'
+        self.version='V5.6.7'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -567,10 +567,10 @@ class App(QMainWindow):
         rug_id = self.table_widget.item(row, id_col).text()
         records = self.db_manager.fetch_records(rug_id)
 
-        record_dialog = RecordDialog(self, rug_id, records)
+        record_dialog = RecordDialog(self, rug_id, records, row)
         record_dialog.exec_()
 
-    def delete_record(self, rug_id, editdate):
+    def delete_record(self, rug_id, editdate, rug_row):
         if self.logged != 1:
             QMessageBox.warning(self, '警告', '您未登录，无法删除记录。')
             return
@@ -580,7 +580,15 @@ class App(QMainWindow):
             return
         date_now=datetime.datetime.now()
         success=self.db_manager.delete_record(rug_id, self.user, editdate, date_now)
+        old_qty=self.db_manager.fetch_record_bef(rug_id, editdate)
+        success=success and self.db_manager.update_rug_quantity(rug_id, old_qty)
+        
         return success
+    
+    def update_quantity_no_record(self, rug_id, row):
+        qty=self.db_manager.fetch_qty(rug_id)
+        item = self.table_widget.item(row, self.qty_index)
+        item.setText(str(qty))
 
 
     def search_item(self):

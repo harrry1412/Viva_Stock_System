@@ -82,15 +82,6 @@ class DatabaseManager:
         rows = cursor.fetchall()
         conn.close()
         return rows
-
-    def fetch_records(self, id):
-        conn = self.connect()
-        cursor = conn.cursor()
-        query="SELECT id, dat, usr, content, bef, aft, editdate, deleted FROM record WHERE id=%s AND deleted=0 order by dat DESC"
-        cursor.execute(query, (id,))
-        rows = cursor.fetchall()
-        conn.close()
-        return rows
     
     def fetch_userPwd(self, username):
         conn = self.connect()
@@ -199,8 +190,7 @@ class DatabaseManager:
         conn = self.connect()
         cursor = conn.cursor()
 
-        # 编写 SQL 查询，用于获取与特定 rug_id 相关联的记录
-        query = "SELECT dat, content, bef, aft FROM record WHERE id = %s AND deleted=0 ORDER BY dat DESC"
+        query = "SELECT dat, content, bef, aft FROM record WHERE id = %s AND deleted=0 ORDER BY editdate DESC"
         cursor.execute(query, (id,))
 
         # 获取查询结果
@@ -208,6 +198,15 @@ class DatabaseManager:
 
         conn.close()
         return records
+    
+    def fetch_records(self, id):
+        conn = self.connect()
+        cursor = conn.cursor()
+        query="SELECT id, dat, usr, content, bef, aft, editdate, deleted FROM record WHERE id=%s AND deleted=0 order by editdate DESC"
+        cursor.execute(query, (id,))
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
 
     def update_note(self, note, rug_id):
         conn = self.connect()
@@ -281,5 +280,51 @@ class DatabaseManager:
             return False
         finally:
             conn.close()
+
+    def fetch_record_bef(self, id, date):
+        conn = self.connect()
+        cursor = conn.cursor()
+        query = """
+        SELECT bef FROM record
+        WHERE id=%s AND editdate=%s;
+        """
+        
+        try:
+            # 执行查询操作
+            cursor.execute(query, (id, date))
+            result = cursor.fetchone()  # 获取查询结果
+            if result:
+                return result[0]  # 返回查询到的bef值
+            else:
+                return None  # 如果没有查询到结果，返回None
+        except Exception as e:
+            print(f"Error fetching record bef: {e}")
+            return None  # 如果出现异常，返回None
+        finally:
+            conn.close()  # 关闭数据库连接
+
+    def fetch_qty(self, id):
+        conn = self.connect()
+        cursor = conn.cursor()
+        query = """
+        SELECT qty FROM rug
+        WHERE id=%s;
+        """
+        
+        try:
+            # 执行查询操作
+            cursor.execute(query, (id,))
+            result = cursor.fetchone() 
+            if result:
+                return result[0] 
+            else:
+                return None  # 如果没有查询到结果，返回None
+        except Exception as e:
+            print(f"Error fetching qty: {e}")
+            return None  # 如果出现异常，返回None
+        finally:
+            conn.close()  # 关闭数据库连接
+
+
 
 

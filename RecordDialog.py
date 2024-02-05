@@ -2,10 +2,10 @@ from PyQt5.QtCore import Qt
 import sys
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QPushButton, QTableWidget,
-                             QTableWidgetItem, QHeaderView, QAbstractItemView, QMenu)
+                             QTableWidgetItem, QHeaderView, QAbstractItemView, QMenu, QMessageBox)
 
 class RecordDialog(QDialog):
-    def __init__(self, parent=None, rug_id="", records=[]):
+    def __init__(self, parent=None, rug_id="", records=[], row=0):
         super().__init__(parent)
         self.setWindowTitle('记录')
         if getattr(sys, 'frozen', False):
@@ -23,6 +23,11 @@ class RecordDialog(QDialog):
 
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.showContextMenu)
+
+        self.table.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        self.rug_row=row
+        self.rug_id=rug_id
 
         # 添加记录到表格中
         for i, record in enumerate(records):
@@ -64,27 +69,27 @@ class RecordDialog(QDialog):
 
     def showContextMenu(self, pos):
         index = self.table.indexAt(pos)
-        if index.isValid():
-            # 获取当前选中的行
-            selectedRows = self.table.selectionModel().selectedRows()
-            # 检查点击的行是否已经被选中
-            isSelected = any(index.row() == sr.row() for sr in selectedRows)
-            
-            # 如果点击在第3列，或者已经选中整行，则显示上下文菜单
-            if index.column() == 3 or isSelected:
-                contextMenu = QMenu(self)
-                deleteAction = contextMenu.addAction("删除记录")
-                action = contextMenu.exec_(self.table.viewport().mapToGlobal(pos))
-                if action == deleteAction:
-                    self.delete_record(index.row())
+        # 确保点击位置有效，且为第一行的第3列
+        if index.isValid() and index.row() == 0 and index.column() == 3:
+            contextMenu = QMenu(self)
+            deleteAction = contextMenu.addAction("删除记录")
+            action = contextMenu.exec_(self.table.viewport().mapToGlobal(pos))
+            if action == deleteAction:
+                # 弹出确认对话框
+                reply = QMessageBox.question(self, '确认删除', '你确定要删除这条记录吗？',
+                                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
+                if reply == QMessageBox.Yes:
+                    self.delete_record(index.row())
+        else:
+            # 如果点击的不是第一行的第3列，不显示上下文菜单
+            pass
 
     
-    def delete_record(self, row):
-        editdate = self.table.item(row, 4).text()
-        print('DELETED')
-        print(editdate)
-        success = self.parent().delete_record(self.rug_id, editdate)
+    def delete_record(self, record_row):
+        editdate = self.table.item(record_row, 4).text()
+        success = self.parent().delete_record(self.rug_id, editdate, self.rug_row)
         
         if success:
-            self.table.removeRow(row)
+            self.table.removeRow(record_row)
+            self.parent().update_quantity_no_record(self.rug_id, self.rug_row)
