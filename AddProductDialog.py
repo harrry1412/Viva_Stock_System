@@ -124,14 +124,17 @@ class AddProductDialog(QDialog):
 
         if file_paths:
             # 我们只保存第一张图片的路径，您可以根据需求来调整
-            self.selected_image_path = file_paths[0] # 假设我们只处理第一个选中的文件
+            self.selected_image_path = file_paths[0]  # 假设我们只处理第一个选中的文件
             # 生成新文件名
             _, ext = os.path.splitext(self.selected_image_path)
-            model = self.model_input.text().strip().replace('/', '-')
-            self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
+            # 对model进行处理：替换/为-，去除(之后的内容（如果有），并去除非法字符
+            model_raw = self.model_input.text().strip()
+            model_processed = model_raw.split('(')[0].replace('/', '-').replace('\n', '').strip()
+            self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model_processed}{ext}"
             self.image_name = os.path.basename(self.new_image_path)
 
             self.image_label.setText('图片: 图片已上传')
+
             
 
     def copy_images_to_folder(self):

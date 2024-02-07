@@ -110,13 +110,17 @@ class EditProductDialog(QDialog):
 
         if file_paths:
             # 我们只保存第一张图片的路径，您可以根据需求来调整
-            self.selected_image_path = file_paths[0] # 假设我们只处理第一个选中的文件
+            self.selected_image_path = file_paths[0]  # 假设我们只处理第一个选中的文件
             # 生成新文件名
             _, ext = os.path.splitext(self.selected_image_path)
-            model = self.model_input.text().strip().replace('/', '-')
-            self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model}{ext}"
+            # 对model进行处理：替换/为-，去除(之后的内容（如果有），并去除非法字符
+            model_raw = self.model_input.text().strip()
+            model_processed = model_raw.split('(')[0].replace('/', '-').replace('\n', '').strip()
+            self.new_image_path = f"//VIVA303-WORK/Viva店面共享/StockImg/{model_processed}{ext}"
             self.image_name = os.path.basename(self.new_image_path)
+
             self.image_label.setText('图片: 图片已上传')
+
 
     def copy_images_to_folder(self):
         # 如果任一路径为None，方法不执行任何操作
@@ -128,24 +132,27 @@ class EditProductDialog(QDialog):
 
     def get_product_data(self):
         # 获取并验证输入数据
-        model = self.model_input.text().strip()
+        model_raw = self.model_input.text().strip()
+        # 对model进行处理：替换/为-，去除(之后的内容（如果有），并去除非法字符
+        model_processed = model_raw.split('(')[0].replace('/', '-').replace('\n', '').strip()
         supplier = self.supplier_input.currentText().strip()
         category = self.category_input.currentText().strip()
 
         image = self.image_name
         if image == '':
-            image = model+'.png'
+            image = model_processed + '.png'
 
-        if not model:
+        if not model_processed:
             QMessageBox.warning(self, '警告', '型号不能为空')
             return None
 
         return {
-            'model': model,
+            'model': model_raw,
             'supplier': supplier,
             'category': category,
             'image': image
         }
+
     
     def save_changes(self):
         # 获取输入值
@@ -175,10 +182,21 @@ class EditProductDialog(QDialog):
 
         # 如果没有选择新图片，重命名原图片
         if self.selected_image_path == '':
-            old_image_path = os.path.join("//VIVA303-WORK/Viva店面共享/StockImg", self.old_info['image'])
-            new_image_path = os.path.join("//VIVA303-WORK/Viva店面共享/StockImg", model + ".png")
+            base_path = "//VIVA303-WORK/Viva店面共享/StockImg"
+            # 处理旧图片名：替换斜杠为横杠，去除括号之后的内容，删除换行符和首尾空格
+            old_image_name = self.old_info['image'].split('(')[0].replace('/', '-').replace('\n', '').strip()
+            old_image_path = os.path.join(base_path, old_image_name)
+            # 确保model已经处理过：替换斜杠为横杠，去除括号之后的内容，删除换行符和首尾空格
+            model_processed = self.model_input.text().split('(')[0].replace('/', '-').replace('\n', '').strip()
+            new_image_name = f"{model_processed}.png"
+            new_image_path = os.path.join(base_path, new_image_name)
+            
             if os.path.exists(old_image_path):
-                os.rename(old_image_path, new_image_path)
+                try:
+                    os.rename(old_image_path, new_image_path)
+                except OSError as e:
+                    print(f"Error renaming file: {e}")
+
 
         # 如果所有检查都通过，接受对话框并关闭
         self.accept()

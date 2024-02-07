@@ -128,7 +128,7 @@ class App(QMainWindow):
         search_layout.addWidget(self.search_button)
         search_layout.addWidget(self.prev_result_button)
         search_layout.addWidget(self.next_result_button)
-        search_layout.addWidget(self.filter_button)  # 将筛选按钮添加到布局中
+        search_layout.addWidget(self.filter_button)
         search_layout.addWidget(self.order_button)
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
@@ -142,8 +142,8 @@ class App(QMainWindow):
 
         # 创建一个水平布局用于显示欢迎信息
         self.welcome_layout = QHBoxLayout()
-        self.welcome_label = QLabel('Welcome Guest')  # 将其设置为类的属性
-        self.welcome_label.setFont(font)  # 使用之前设置的字体
+        self.welcome_label = QLabel('Welcome Guest')
+        self.welcome_label.setFont(font)
         self.welcome_layout.addStretch(1)  # 先添加伸缩项，占据所有额外空间
         self.welcome_layout.addWidget(self.welcome_label)  # 然后添加标签，它将被推向最右侧
         self.layout.addLayout(self.welcome_layout)
@@ -195,14 +195,14 @@ class App(QMainWindow):
         # 启用表格排序
         self.table_widget.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
 
-        self.showMaximized()  # 最大化窗口
+        self.showMaximized()
 
         self.show()
 
     
 
     def on_search_input_clicked(self):
-        self.search_input.selectAll()  # 选中所有文本
+        self.search_input.selectAll()
 
     def on_header_clicked(self, logicalIndex):
         # 检查被点击的列是否是可排序的列
