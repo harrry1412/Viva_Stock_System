@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V5.6.7'
+        self.version='V6.0.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -582,13 +582,16 @@ class App(QMainWindow):
         success=self.db_manager.delete_record(rug_id, self.user, editdate, date_now)
         old_qty=self.db_manager.fetch_record_bef(rug_id, editdate)
         success=success and self.db_manager.update_rug_quantity(rug_id, old_qty)
-        
         return success
     
     def update_quantity_no_record(self, rug_id, row):
         qty=self.db_manager.fetch_qty(rug_id)
-        item = self.table_widget.item(row, self.qty_index)
-        item.setText(str(qty))
+        qty_item = self.table_widget.item(row, self.qty_index)
+        qty_item.setText(str(qty))
+        records = self.db_manager.fetch_records_for_rug(rug_id)
+        record_str = "\n".join([f"{date}: {'+' if aft > bef else ''}{aft - bef}" for date, content, bef, aft in records])
+        record_item = self.table_widget.item(row, self.record_index)
+        record_item.setText(record_str)
 
 
     def search_item(self):

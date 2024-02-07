@@ -101,11 +101,19 @@ class DatabaseManager:
 
     def update_rug_quantity(self, rug_id, new_quantity):
         conn = self.connect()
-        cursor = conn.cursor()
-        update_query = "UPDATE rug SET qty = %s WHERE id = %s"
-        cursor.execute(update_query, (new_quantity, rug_id))
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            update_query = "UPDATE rug SET qty = %s WHERE id = %s"
+            cursor.execute(update_query, (new_quantity, rug_id))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
+
 
     def insert_record(self, record_id, user, content, bef, aft, date, edit_date):
         conn = self.connect()

@@ -82,7 +82,6 @@ class RecordDialog(QDialog):
                 if reply == QMessageBox.Yes:
                     self.delete_record(index.row())
         else:
-            # 如果点击的不是第一行的第3列，不显示上下文菜单
             pass
 
     
