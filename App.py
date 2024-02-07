@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.0.1'
+        self.version='V6.1.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -774,21 +774,30 @@ class App(QMainWindow):
             username = login_dialog.get_username()
             password = login_dialog.get_password()
             if username and password:
-                if self.verify_login(username, password):
+                login_verify_code=self.verify_login(username, password)
+                if login_verify_code==2:
+                    # Login successfully
                     self.login_successful(username)
+                elif login_verify_code==0:
+                    self.show_error_message('登录失败', '用户名或密码错误，请重试')
                 else:
-                    self.show_error_message('登录失败', '用户名或密码错误!')
+                    self.show_error_message('登录失败', '账号暂时不可用，请联系系统管理员')
             else:
-                self.show_error_message('登录失败', '用户名或密码错误!')
+                self.show_error_message('登录失败', '用户名或密码错误，请重试')
 
 
     def verify_login(self, username, password):
-        # 在这里添加验证用户名和密码的逻辑
-        database_password = self.db_manager.fetch_userPwd(username)
-        if database_password and password == database_password:
-            return True
-        else:
-            return False
+        user_info = self.db_manager.fetch_userPwd_status(username)
+        if user_info:
+            # 检查密码是否匹配
+            if password == user_info['password']:
+                # 密码正确，进一步检查状态
+                if user_info['status']:
+                    return 2  # 密码正确且状态为true
+                else:
+                    return 1  # 密码正确但状态为false
+        # 密码不匹配或没有找到用户信息，返回0
+        return 0
 
     def login_successful(self, username):
         # 在这里添加登录成功后的操作

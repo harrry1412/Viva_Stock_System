@@ -83,21 +83,22 @@ class DatabaseManager:
         conn.close()
         return rows
     
-    def fetch_userPwd(self, username):
+    def fetch_userPwd_status(self, username):
         conn = self.connect()
-        cursor = conn.cursor()
-        query = "SELECT pwd FROM user WHERE name=%s"
         try:
+            cursor = conn.cursor()
+            query = "SELECT pwd, status FROM user WHERE name=%s"
             cursor.execute(query, (username,))
-            rows = cursor.fetchall()
-            if rows:
-                # 获取第一个匹配项的密码
-                return rows[0][0]
+            row = cursor.fetchone()
+            if row:
+                # 构建并返回包含密码和状态的字典
+                return {'password': row[0], 'status': row[1]}
         except Exception as e:
-            print(f"Error fetching password: {e}")
+            print(f"Error fetching password and status: {e}")
         finally:
             conn.close()
-        return None
+        return None  # 如果没有找到用户或发生异常，则返回 None
+
 
     def update_rug_quantity(self, rug_id, new_quantity):
         conn = self.connect()
