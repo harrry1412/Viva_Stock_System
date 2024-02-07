@@ -75,12 +75,7 @@ class RecordDialog(QDialog):
             deleteAction = contextMenu.addAction("删除记录")
             action = contextMenu.exec_(self.table.viewport().mapToGlobal(pos))
             if action == deleteAction:
-                # 弹出确认对话框
-                reply = QMessageBox.question(self, '确认删除', '你确定要删除这条记录吗？',
-                                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-
-                if reply == QMessageBox.Yes:
-                    self.delete_record(index.row())
+                self.delete_record(index.row())
         else:
             pass
 

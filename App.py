@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.0.0'
+        self.version='V6.0.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -578,11 +578,16 @@ class App(QMainWindow):
         if not permission:
             QMessageBox.warning(self, '警告', '账户权限不足，无法删除记录。')
             return
-        date_now=datetime.datetime.now()
-        success=self.db_manager.delete_record(rug_id, self.user, editdate, date_now)
-        old_qty=self.db_manager.fetch_record_bef(rug_id, editdate)
-        success=success and self.db_manager.update_rug_quantity(rug_id, old_qty)
-        return success
+        reply = QMessageBox.question(self, '确认删除', '你确定要删除这条记录吗？',
+                                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            date_now=datetime.datetime.now()
+            success=self.db_manager.delete_record(rug_id, self.user, editdate, date_now)
+            old_qty=self.db_manager.fetch_record_bef(rug_id, editdate)
+            success=success and self.db_manager.update_rug_quantity(rug_id, old_qty)
+            return success
+        else:
+            return False
     
     def update_quantity_no_record(self, rug_id, row):
         qty=self.db_manager.fetch_qty(rug_id)
