@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.1.2'
+        self.version='V6.2.3'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -49,7 +49,7 @@ class App(QMainWindow):
         self.order_key='none'
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
-        self.title = f'Viva仓库库存 {self.version} - Designed by Harry'
+        self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []
@@ -271,11 +271,21 @@ class App(QMainWindow):
             self.image_window = QDialog(self)
             self.image_window.setWindowTitle("图片预览")
 
+            # get screen size
+            screen = QApplication.primaryScreen().size()
+
+            # check pixmap size, scale to fit screen size
+            max_width = screen.width() * 0.8
+            max_height = screen.height() * 0.8
+            if pixmap.width() > max_width or pixmap.height() > max_height:
+                pixmap = pixmap.scaled(max_width, max_height, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
             layout = QVBoxLayout(self.image_window)
             label = ImageLabel()
             label.setPixmap(pixmap)
             layout.addWidget(label)
 
+            # resize image window size
             self.image_window.resize(pixmap.size())
             self.image_window.exec_()
 

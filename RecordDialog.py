@@ -18,7 +18,7 @@ class RecordDialog(QDialog):
         self.layout = QVBoxLayout()
         self.table = QTableWidget()
         self.table.setColumnCount(5)  
-        self.table.setHorizontalHeaderLabels(['型号', '开单日期', '修改人', '内容', 'Edittime'])
+        self.table.setHorizontalHeaderLabels(['型号', '进出货日期', '修改人', '内容', 'Edittime'])
         self.table.setRowCount(len(records))
 
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)

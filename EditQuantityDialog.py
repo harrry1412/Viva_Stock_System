@@ -78,7 +78,7 @@ class EditQuantityDialog(QDialog):
         self.record_label=QLabel('调货细节/原因：')
         self.record_input = QLineEdit()
         # 添加日期编辑器
-        self.date_label = QLabel('开单日期：')
+        self.date_label = QLabel('进出货日期：')
         self.date_input = CustomDateEdit()
 
         font = QFont()
@@ -175,7 +175,7 @@ class EditQuantityDialog(QDialog):
             if(self.date_input.choseDate==1):
                 self.accept()
             else:
-                QMessageBox.warning(self, '警告', '请选择开单日期')
+                QMessageBox.warning(self, '警告', '请选择进出货日期')
         else:
             QMessageBox.warning(self, '警告', '记录不能为空')
 
