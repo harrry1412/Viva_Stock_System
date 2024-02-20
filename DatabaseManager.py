@@ -1,6 +1,7 @@
 import configparser
 import mysql.connector
 from mysql.connector import pooling
+import datetime
 
 
 class DatabaseManager:
@@ -196,34 +197,52 @@ class DatabaseManager:
             conn.close()
 
     def fetch_records_for_rug(self, id):
-        conn = self.connect()
-        cursor = conn.cursor()
-
-        query = "SELECT dat, content, bef, aft FROM record WHERE id = %s AND deleted=0 ORDER BY editdate DESC"
-        cursor.execute(query, (id,))
-
-        # 获取查询结果
-        records = cursor.fetchall()
-
-        conn.close()
-        return records
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = "SELECT dat, content, bef, aft FROM record WHERE id = %s AND deleted=0 ORDER BY editdate DESC"
+            cursor.execute(query, (id,))
+            records = cursor.fetchall()
+            return records
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+        finally:
+            if conn.is_connected():
+                conn.close()
     
     def fetch_records(self, id):
-        conn = self.connect()
-        cursor = conn.cursor()
-        query="SELECT id, dat, usr, content, bef, aft, editdate, deleted FROM record WHERE id=%s AND deleted=0 order by editdate DESC"
-        cursor.execute(query, (id,))
-        rows = cursor.fetchall()
-        conn.close()
-        return rows
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = "SELECT id, dat, usr, content, bef, aft, editdate, deleted FROM record WHERE id=%s AND deleted=0 order by editdate DESC"
+            cursor.execute(query, (id,))
+            rows = cursor.fetchall()
+            return rows
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+        finally:
+            if conn.is_connected():
+                conn.close()
 
     def update_note(self, note, rug_id):
         conn = self.connect()
-        cursor = conn.cursor()
-        update_query="UPDATE rug SET note = %s WHERE id = %s"
-        cursor.execute(update_query, (note, rug_id))
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            update_query = "UPDATE rug SET note = %s WHERE id = %s"
+            cursor.execute(update_query, (note, rug_id))
+            conn.commit()
+            self.update_last_modified_time()
+            return True
+        except Exception as e:
+            print(f"An error occurred while updating the note: {e}")
+            conn.rollback()
+            return False 
+        finally:
+            if conn.is_connected():
+                conn.close()
+
 
 
     def update_rug_info(self, old_model_id, new_rug_data):
@@ -244,6 +263,7 @@ class DatabaseManager:
                 old_model_id
             ))
             conn.commit()
+            self.update_last_modified_time()
             return True
         except mysql.connector.Error as err:
             print(f"Error updating rug: {err}")
@@ -282,6 +302,7 @@ class DatabaseManager:
             # 执行更新操作
             cursor.execute(query, (user, now, id, date))
             conn.commit()
+            self.update_last_modified_time()
             return True
         except Exception as e:
             print(f"Error updating record: {e}")
@@ -333,6 +354,21 @@ class DatabaseManager:
             return None  # 如果出现异常，返回None
         finally:
             conn.close()  # 关闭数据库连接
+
+    def update_last_modified_time(self):
+        conn = self.connect()
+        try:
+            cursor = conn.cursor()
+            # 使用Python的datetime.now()获取当前时间
+            current_time = datetime.datetime.now()
+            update_query = "UPDATE modification_log SET last_modified_time = %s;"
+            cursor.execute(update_query, (current_time,))
+            conn.commit()
+        except Exception as e:
+            print(f"An error occurred while updating the last modified time: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
 
 
 
