@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.3.3'
+        self.version='V6.4.3'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -133,7 +133,7 @@ class App(QMainWindow):
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
-        #search_layout.addWidget(self.about_button)
+        search_layout.addWidget(self.about_button)
         search_layout.addWidget(self.login_button)
         search_layout.addStretch(1)
         search_layout.setContentsMargins(0, 0, 0, 0)

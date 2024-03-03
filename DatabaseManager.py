@@ -24,69 +24,99 @@ class DatabaseManager:
         return self.pool.get_connection()
     
     def fetch_supplier(self):
-        conn=self.connect()
-        cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT supplier FROM rug")
-        suppliers = [row[0] for row in cursor.fetchall()]
-        conn.close()
-        return suppliers
-    
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            cursor.execute("SELECT DISTINCT supplier FROM rug")
+            suppliers = [row[0] for row in cursor.fetchall()]
+            return suppliers
+        except Exception as e:
+            print(f"Error fetching suppliers: {e}")
+            return []
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
     def fetch_category(self):
-        conn=self.connect()
-        cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT category FROM rug")
-        categories = [row[0] for row in cursor.fetchall()]
-        conn.close()
-        return categories
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            cursor.execute("SELECT DISTINCT category FROM rug")
+            categories = [row[0] for row in cursor.fetchall()]
+            return categories
+        except Exception as e:
+            print(f"Error fetching categories: {e}")
+            return []
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
 
     def fetch_rugs(self):
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, qty, supplier, category, note, image FROM rug order by supplier, sort, id ASC")
-        rows = cursor.fetchall()
-        conn.close()
-        return rows
-    
-    def fetch_rug_by_id(self, rug_id):
-        conn = self.connect()
+        conn = None
         try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, qty, supplier, category, note, image FROM rug ORDER BY supplier, sort, id ASC")
+            rows = cursor.fetchall()
+            return rows
+        except Exception as e:
+            print(f"Error fetching rugs: {e}")
+            return []
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def fetch_rug_by_id(self, rug_id):
+        conn = None
+        try:
+            conn = self.connect()
             cursor = conn.cursor(dictionary=True)  # 使用字典格式的游标
             query = "SELECT * FROM rug WHERE id = %s"
             cursor.execute(query, (rug_id,))
             rug_data = cursor.fetchall()
             if rug_data:
-                return rug_data[0]  # 返回第一条记录作为字典
+                return rug_data[0]  # 如果查询到数据，返回第一条记录作为字典
         except Exception as e:
-            print(f"Error fetching rug data: {e}")
+            print(f"查询rug数据时出错: {e}")
+            return None
         finally:
-            if conn.is_connected():
+            if conn and conn.is_connected():
                 conn.close()
-        return None
     
     def fetch_ordered_rugs(self, key, direction):
-        # 首先验证 key 是一个有效的列名
+        # 验证 key 是否为有效的列名
         valid_keys = ['id', 'qty', 'supplier', 'note', 'image']
         if key not in valid_keys:
-            raise ValueError("Invalid order key")
+            raise ValueError("无效的排序键")
 
-        # 同样，验证 direction 是一个有效的排序方向
+        # 验证 direction 是否为有效的排序方向
         valid_directions = ['ASC', 'DESC']
         if direction not in valid_directions:
-            raise ValueError("Invalid order direction")
+            raise ValueError("无效的排序方向")
 
-        conn = self.connect()
-        cursor = conn.cursor()
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            # 构建包含排序方向参数的查询
+            query = f"SELECT id, qty, supplier, category, note, image FROM rug ORDER BY {key} {direction}"
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            return rows
+        except Exception as e:
+            print(f"查询有序rugs时出错: {e}")
+            return []
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
 
-        # 包括排序方向参数
-        query = f"SELECT id, qty, supplier, category, note, image FROM rug ORDER BY {key} {direction}"
-        cursor.execute(query)  # 不需要传递参数了
-        rows = cursor.fetchall()
-        conn.close()
-        return rows
     
     def fetch_userPwd_status(self, username):
-        conn = self.connect()
+        conn = None
         try:
+            conn = self.connect()
             cursor = conn.cursor()
             query = "SELECT pwd, status FROM user WHERE name=%s"
             cursor.execute(query, (username,))
@@ -95,108 +125,151 @@ class DatabaseManager:
                 # 构建并返回包含密码和状态的字典
                 return {'password': row[0], 'status': row[1]}
         except Exception as e:
-            print(f"Error fetching password and status: {e}")
+            print(f"获取用户密码和状态时出错: {e}")
+            return None
         finally:
-            conn.close()
-        return None  # 如果没有找到用户或发生异常，则返回 None
-
+            if conn and conn.is_connected():
+                conn.close()
 
     def update_rug_quantity(self, rug_id, new_quantity):
-        conn = self.connect()
+        conn = None
         try:
+            conn = self.connect()
             cursor = conn.cursor()
             update_query = "UPDATE rug SET qty = %s WHERE id = %s"
             cursor.execute(update_query, (new_quantity, rug_id))
             conn.commit()
+            # 更新最后修改时间
+            self.update_last_modified_time()
+            return True
+        except Exception as e:
+            print(f"更新rug数量时出错: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def insert_record(self, record_id, user, content, bef, aft, date, edit_date):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            insert_query = """
+            INSERT INTO record (id, usr, content, bef, aft, dat, editdate) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (record_id, user, content, bef, aft, date, edit_date))
+            conn.commit()
+            # 更新最后修改时间
+            self.update_last_modified_time()
+            return True
+        except Exception as e:
+            print(f"插入记录时发生错误: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def insert_note_record(self, record_id, user, bef, aft, date):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            insert_query = """
+            INSERT INTO note_record (id, usr, bef, aft, dat) 
+            VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (record_id, user, bef, aft, date))
+            conn.commit()
+            # 更新最后修改时间
+            self.update_last_modified_time()
+            return True
+        except Exception as e:
+            print(f"插入笔记记录时发生错误: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def insert_edit_product_record(self, user, old, new, date):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            insert_query = """
+            INSERT INTO edit_product_record (usr, old_info, new_info, editdate) 
+            VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (user, old, new, date))
+            conn.commit()
+            self.update_last_modified_time() # 更新最后修改时间
             return True
         except Exception as e:
             print(f"An error occurred: {e}")
-            conn.rollback()
+            if conn:
+                conn.rollback()
             return False
         finally:
-            conn.close()
-
-
-    def insert_record(self, record_id, user, content, bef, aft, date, edit_date):
-        conn = self.connect()
-        cursor = conn.cursor()
-        insert_query = """
-        INSERT INTO record (id, usr, content, bef, aft, dat, editdate) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-        # 执行插入操作
-        cursor.execute(insert_query, (record_id, user, content, bef, aft, date, edit_date))
-        # 提交更改
-        conn.commit()
-        # 关闭连接
-        cursor.close()
-        conn.close()
-
-    def insert_note_record(self, record_id, user, bef, aft, date):
-        conn = self.connect()
-        cursor = conn.cursor()
-        insert_query = """
-        INSERT INTO note_record (id, usr, bef, aft, dat) 
-        VALUES (%s, %s, %s, %s, %s)
-        """
-        # 执行插入操作
-        cursor.execute(insert_query, (record_id, user, bef, aft, date))
-        # 提交更改
-        conn.commit()
-        # 关闭连接
-        cursor.close()
-        conn.close()
-
-    def insert_edit_product_record(self, user, old, new, date):
-        conn = self.connect()
-        cursor = conn.cursor()
-        insert_query = """
-        INSERT INTO edit_product_record (usr, old_info, new_info, editdate) 
-        VALUES (%s, %s, %s, %s)
-        """
-        # 执行插入操作
-        cursor.execute(insert_query, (user, old, new, date))
-        # 提交更改
-        conn.commit()
-        # 关闭连接
-        cursor.close()
-        conn.close()
+            if conn and conn.is_connected():
+                conn.close()
 
 
     def insert_product(self, product_data):
+        # 处理数据中的None值
+        processed_data = []
         for data in product_data:
-            if(data is None):
-                data=''
+            if data is None:
+                processed_data.append('')
+            else:
+                processed_data.append(data)
+        processed_data = tuple(processed_data)  # 转换为元组以符合cursor.execute的要求
+
+        conn = None
         try:
             conn = self.connect()
             cursor = conn.cursor()
             insert_query = "INSERT INTO rug (id, qty, category, supplier, note, image, adddate, adduser) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(insert_query, product_data)  # Directly pass the product_data tuple
+            cursor.execute(insert_query, processed_data)
             conn.commit()
-            return True  # Return True to indicate success
-        except mysql.connector.Error as err:
-            print(f"Error inserting product: {err}")
-            return False  # Return False to indicate failure
+            self.update_last_modified_time()  # 更新最后修改时间
+            return True
+        except Exception as e:
+            print(f"插入产品时出错: {e}")
+            if conn:
+                conn.rollback()
+            return False
         finally:
-            if conn.is_connected():
+            if conn and conn.is_connected():
                 conn.close()
 
+
     def id_exists(self, id):
-        conn = self.connect()
-        cursor = conn.cursor()
-        query = "SELECT count(*) FROM rug WHERE id=%s"
-        
+        conn = None
         try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = "SELECT count(*) FROM rug WHERE id=%s"
+            
             cursor.execute(query, (id,))
             (count,) = cursor.fetchone()
+            
             return count > 0
         except Exception as e:
             print(f"Error checking id existence: {e}")
             return False
         finally:
-            conn.close()
+            if conn and conn.is_connected():
+                conn.close()
+
 
     def fetch_records_for_rug(self, id):
+        conn = None
         try:
             conn = self.connect()
             cursor = conn.cursor()
@@ -208,14 +281,15 @@ class DatabaseManager:
             print(f"An error occurred: {e}")
             return []
         finally:
-            if conn.is_connected():
+            if conn and conn.is_connected():
                 conn.close()
-    
+
     def fetch_records(self, id):
+        conn = None
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            query = "SELECT id, dat, usr, content, bef, aft, editdate, deleted FROM record WHERE id=%s AND deleted=0 order by editdate DESC"
+            query = "SELECT id, dat, usr, content, bef, aft, editdate, deleted FROM record WHERE id=%s AND deleted=0 ORDER BY editdate DESC"
             cursor.execute(query, (id,))
             rows = cursor.fetchall()
             return rows
@@ -223,37 +297,39 @@ class DatabaseManager:
             print(f"An error occurred: {e}")
             return []
         finally:
-            if conn.is_connected():
+            if conn and conn.is_connected():
                 conn.close()
 
     def update_note(self, note, rug_id):
-        conn = self.connect()
+        conn = None
         try:
+            conn = self.connect()
             cursor = conn.cursor()
             update_query = "UPDATE rug SET note = %s WHERE id = %s"
             cursor.execute(update_query, (note, rug_id))
             conn.commit()
-            self.update_last_modified_time()
+            self.update_last_modified_time() # 更新最后修改时间
             return True
         except Exception as e:
             print(f"An error occurred while updating the note: {e}")
-            conn.rollback()
-            return False 
+            if conn:
+                conn.rollback()
+            return False
         finally:
-            if conn.is_connected():
+            if conn and conn.is_connected():
                 conn.close()
 
 
-
     def update_rug_info(self, old_model_id, new_rug_data):
-        conn = self.connect()
-        cursor = conn.cursor()
-        update_query = """
-        UPDATE rug
-        SET id = %s, supplier = %s, category = %s, image = %s
-        WHERE id = %s
-        """
+        conn = None
         try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            update_query = """
+            UPDATE rug
+            SET id = %s, supplier = %s, category = %s, image = %s
+            WHERE id = %s
+            """
             # 执行更新操作
             cursor.execute(update_query, (
                 new_rug_data['model'],
@@ -263,21 +339,25 @@ class DatabaseManager:
                 old_model_id
             ))
             conn.commit()
-            self.update_last_modified_time()
+            self.update_last_modified_time()  # 更新最后修改时间
             return True
         except mysql.connector.Error as err:
             print(f"Error updating rug: {err}")
+            if conn:
+                conn.rollback()
             return False
         finally:
-            if conn.is_connected():
+            if conn and conn.is_connected():
                 conn.close()
 
+
     def check_user_permission(self, user, permission):
-        conn = self.connect()
-        cursor = conn.cursor()
-        query = "SELECT count(*) FROM user_permission WHERE usr=%s and permission=%s"
-        
+        conn = None
         try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = "SELECT count(*) FROM user_permission WHERE usr=%s AND permission=%s"
+            
             cursor.execute(query, (user, permission))
             (count,) = cursor.fetchone()
             return count > 0
@@ -285,42 +365,46 @@ class DatabaseManager:
             print(f"Error checking user permission: {e}")
             return False
         finally:
-            conn.close()
+            if conn and conn.is_connected():
+                conn.close()
+
 
     def delete_record(self, id, user, date, now):
-        conn = self.connect()
-        cursor = conn.cursor()
-        query = """
-        UPDATE record
-        SET del_user = %s, 
-            del_date = %s,
-            deleted = 1
-        WHERE id=%s AND editdate = %s;
-        """
-        
+        conn = None
         try:
-            # 执行更新操作
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = """
+            UPDATE record
+            SET del_user = %s, 
+                del_date = %s,
+                deleted = 1
+            WHERE id = %s AND editdate = %s;
+            """
             cursor.execute(query, (user, now, id, date))
             conn.commit()
-            self.update_last_modified_time()
+            self.update_last_modified_time()  # 更新最后修改时间
             return True
         except Exception as e:
             print(f"Error updating record: {e}")
-            conn.rollback()  # 如果出现异常，回滚更改
+            if conn:
+                conn.rollback()
             return False
         finally:
-            conn.close()
+            if conn and conn.is_connected():
+                conn.close()
+
 
     def fetch_record_bef(self, id, date):
-        conn = self.connect()
-        cursor = conn.cursor()
-        query = """
-        SELECT bef FROM record
-        WHERE id=%s AND editdate=%s;
-        """
-        
+        conn = None
         try:
-            # 执行查询操作
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = """
+            SELECT bef FROM record
+            WHERE id=%s AND editdate=%s;
+            """
+            
             cursor.execute(query, (id, date))
             result = cursor.fetchone()  # 获取查询结果
             if result:
@@ -331,44 +415,60 @@ class DatabaseManager:
             print(f"Error fetching record bef: {e}")
             return None  # 如果出现异常，返回None
         finally:
-            conn.close()  # 关闭数据库连接
+            if conn and conn.is_connected():
+                conn.close()
+
 
     def fetch_qty(self, id):
-        conn = self.connect()
-        cursor = conn.cursor()
-        query = """
-        SELECT qty FROM rug
-        WHERE id=%s;
-        """
-        
+        conn = None
         try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = """
+            SELECT qty FROM rug
+            WHERE id=%s;
+            """
+            
             # 执行查询操作
             cursor.execute(query, (id,))
-            result = cursor.fetchone() 
+            result = cursor.fetchone()
             if result:
-                return result[0] 
+                return result[0]  # 如果查询到结果，返回查询到的qty值
             else:
                 return None  # 如果没有查询到结果，返回None
         except Exception as e:
             print(f"Error fetching qty: {e}")
             return None  # 如果出现异常，返回None
         finally:
-            conn.close()  # 关闭数据库连接
+            if conn and conn.is_connected():
+                conn.close()  # 确保在最后关闭数据库连接
+
+
 
     def update_last_modified_time(self):
-        conn = self.connect()
+        conn = None
         try:
+            conn = self.connect()
             cursor = conn.cursor()
-            # 使用Python的datetime.now()获取当前时间
+            # 获取当前时间
             current_time = datetime.datetime.now()
-            update_query = "UPDATE modification_log SET last_modified_time = %s;"
+            # 准备更新time_log表的SQL语句
+            update_query = """
+            UPDATE time_log
+            SET val = %s
+            WHERE title = 'last_modify';
+            """
+            # 执行SQL语句
             cursor.execute(update_query, (current_time,))
             conn.commit()
         except Exception as e:
             print(f"An error occurred while updating the last modified time: {e}")
-            conn.rollback()
+            if conn:
+                conn.rollback()
         finally:
-            conn.close()
+            if conn and conn.is_connected():
+                conn.close()
+
 
 
 
