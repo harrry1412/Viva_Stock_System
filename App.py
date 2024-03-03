@@ -70,6 +70,7 @@ class App(QMainWindow):
         self.note_index=0
         self.record_index=0
         self.action_index=0
+        self.refresh_time=datetime.datetime.now()
         self.logged=0
 
     def initUI(self):
@@ -442,6 +443,9 @@ class App(QMainWindow):
         if not permission:
             QMessageBox.warning(self, '警告', '账户权限不足，无法修改数量。')
             return
+        if not self.is_latest():
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
+            return
 
         item = self.table_widget.item(row, self.qty_index)
         current_quantity = item.text()
@@ -519,6 +523,9 @@ class App(QMainWindow):
         if not permission:
             QMessageBox.warning(self, '警告', '账户权限不足，无法修改产品数据。')
             return
+        if not self.is_latest():
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
+            return
 
         rug_id = self.table_widget.item(row, self.id_index).text()
         old_info = self.db_manager.fetch_rug_by_id(rug_id)
@@ -546,6 +553,9 @@ class App(QMainWindow):
         permission=self.db_manager.check_user_permission(self.user, 'add_product')
         if not permission:
             QMessageBox.warning(self, '警告', '账户权限不足，无法添加新品。')
+            return
+        if not self.is_latest():
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
             return
 
         add_product_dialog = AddProductDialog(self)
@@ -587,6 +597,9 @@ class App(QMainWindow):
         permission=self.db_manager.check_user_permission(self.user, 'delete_record')
         if not permission:
             QMessageBox.warning(self, '警告', '账户权限不足，无法删除记录。')
+            return
+        if not self.is_latest():
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
             return
         reply = QMessageBox.question(self, '确认删除', '你确定要删除这条记录吗？',
                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -816,6 +829,15 @@ class App(QMainWindow):
         self.login_button.setText('登出')
         self.logged = 1
 
+    def is_latest(self):
+        dict=self.db_manager.fetch_last_modified()
+        last_time=dict['time']
+        last_user=dict['user']
+        if (self.refresh_time < last_time) and self.user == last_user:
+            return False
+        else:
+            return True
+
     def show_error_message(self, title, message):
         QMessageBox.warning(self, title, message)
     
@@ -897,6 +919,7 @@ class App(QMainWindow):
         self.action_index=self.get_column_index_by_name('操作')
     
     def refresh_window(self):
+        self.refresh_time=datetime.datetime.now()
         self.filtered_suppliers=[]
         self.filtered_categories=[]
         self.reset_application()
