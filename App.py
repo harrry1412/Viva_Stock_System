@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.5.4'
+        self.version='V6.6.4'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -134,7 +134,8 @@ class App(QMainWindow):
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
-        search_layout.addWidget(self.about_button)
+        if self.show_about_bool():
+            search_layout.addWidget(self.about_button)
         search_layout.addWidget(self.login_button)
         search_layout.addStretch(1)
         search_layout.setContentsMargins(0, 0, 0, 0)
@@ -294,6 +295,14 @@ class App(QMainWindow):
         if row in self.image_paths:
             return self.image_paths[row]
         return None
+    
+    def show_about_bool(self):
+        dict=self.db_manager.fetch_show_about()
+        show=dict['user']
+        if show == 'yes':
+            return True
+        else:
+            return False
 
 
     def populate_table(self):
