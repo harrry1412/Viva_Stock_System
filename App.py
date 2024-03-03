@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.4.4'
+        self.version='V6.5.4'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -833,7 +833,7 @@ class App(QMainWindow):
         dict=self.db_manager.fetch_last_modified()
         last_time=dict['time']
         last_user=dict['user']
-        if (self.refresh_time < last_time) and self.user == last_user:
+        if (self.refresh_time < last_time) and self.user != last_user:
             return False
         else:
             return True
