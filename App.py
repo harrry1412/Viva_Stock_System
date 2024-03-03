@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.6.4'
+        self.version='V6.6.5'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -872,7 +872,7 @@ class App(QMainWindow):
                     rows_to_export = db_manager.fetch_rugs()
 
                     # 指定自定义的列顺序
-                    column_order = ['图片', '型号', '数量', '供货商', '备注']
+                    column_order = ['图片', '型号', '类型', '数量', '供货商', '备注']
 
                     # 对数据进行排序以符合要求
                     rows_to_export.sort(key=lambda x: (x[2], x[1], x[0]))
@@ -890,7 +890,7 @@ class App(QMainWindow):
                     # 将数据填充到默认工作表
                     for row in rows_to_export:
                         # 提取按照自定义顺序的列数据
-                        row_data = [row[4], row[0], row[1], row[2], row[3]]
+                        row_data = [row[5], row[0], row[3], row[1], row[2], row[4]]
                         default_sheet.append(row_data)
 
                     # 获取不同供货商的数据
@@ -906,7 +906,7 @@ class App(QMainWindow):
                         supplier_data = [row for row in rows_to_export if row[2] == supplier]
                         for row in supplier_data:
                             # 按照指定顺序提取数据列
-                            data_columns = [row[4], row[0], row[1], row[2], row[3]]
+                            data_columns = [row[5], row[0], row[3], row[1], row[2], row[4]]
                             sheet.append(data_columns)
 
 
