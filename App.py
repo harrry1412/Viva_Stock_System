@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.6.6'
+        self.version='V6.7.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -152,7 +152,7 @@ class App(QMainWindow):
 
 
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(8)  #总列数
+        self.table_widget.setColumnCount(7)  #总列数
         self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "类型", "供货商", "数量", "备注", "记录", "操作"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.populate_table()
@@ -186,7 +186,7 @@ class App(QMainWindow):
         header.setSectionResizeMode(self.image_index, QHeaderView.Interactive)
         header.resizeSection(self.image_index, 200)
         header.setSectionResizeMode(self.id_index, QHeaderView.Interactive)
-        header.resizeSection(self.id_index, 300)
+        header.resizeSection(self.id_index, 400)
         header.setSectionResizeMode(self.category_index, QHeaderView.Interactive)
         header.resizeSection(self.category_index, 150)
         header.setSectionResizeMode(self.supplier_index, QHeaderView.Interactive)
@@ -194,7 +194,7 @@ class App(QMainWindow):
         header.setSectionResizeMode(self.qty_index, QHeaderView.Interactive)
         header.resizeSection(self.qty_index, 100)
         header.setSectionResizeMode(self.note_index, QHeaderView.Interactive)
-        header.resizeSection(self.note_index, 300)
+        header.resizeSection(self.note_index, 500)
 
         # 启用表格排序
         self.table_widget.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
@@ -387,6 +387,7 @@ class App(QMainWindow):
             self.record_thread_pool.start(record_loader)
 
             # Operation buttons column
+            '''
             edit_button = QPushButton('修改')
             note_button = QPushButton('备注')
             record_button = QPushButton('记录')
@@ -406,7 +407,7 @@ class App(QMainWindow):
             button_layout.setContentsMargins(0, 0, 0, 0)
             button_container.setLayout(button_layout)
             self.table_widget.setCellWidget(i, self.action_index, button_container)
-
+            '''
             self.table_widget.setRowHeight(i, 110)
 
     def on_data_fetch_error(self, error_message):
