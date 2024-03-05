@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.6.5'
+        self.version='V6.6.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -193,6 +193,8 @@ class App(QMainWindow):
         header.resizeSection(self.supplier_index, 100)
         header.setSectionResizeMode(self.qty_index, QHeaderView.Interactive)
         header.resizeSection(self.qty_index, 100)
+        header.setSectionResizeMode(self.note_index, QHeaderView.Interactive)
+        header.resizeSection(self.note_index, 300)
 
         # 启用表格排序
         self.table_widget.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
