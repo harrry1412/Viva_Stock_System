@@ -6,7 +6,7 @@ import mysql.connector
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLabel,
-    QHeaderView, QPushButton, QDialog, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView
+    QHeaderView, QPushButton, QDialog, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView, QHeaderView
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QTimer
@@ -33,7 +33,7 @@ from EditProductDialog import EditProductDialog
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V6.7.6'
+        self.version='V6.8.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -182,19 +182,26 @@ class App(QMainWindow):
         # 设置所有列号
         self.set_all_column_index()
 
-        
+        totalWidth=self.table_widget.width()
+        print('Table Width: '+str(totalWidth))
         header.setSectionResizeMode(self.image_index, QHeaderView.Interactive)
-        header.resizeSection(self.image_index, 200)
+        # header.resizeSection(self.image_index, 200)
+        header.resizeSection(self.image_index, totalWidth * 0.3)
         header.setSectionResizeMode(self.id_index, QHeaderView.Interactive)
-        header.resizeSection(self.id_index, 400)
+        # header.resizeSection(self.id_index, 400)
+        header.resizeSection(self.id_index, totalWidth * 0.7)
         header.setSectionResizeMode(self.category_index, QHeaderView.Interactive)
-        header.resizeSection(self.category_index, 150)
+        # header.resizeSection(self.category_index, 150)
+        header.resizeSection(self.category_index, totalWidth * 0.2)
         header.setSectionResizeMode(self.supplier_index, QHeaderView.Interactive)
-        header.resizeSection(self.supplier_index, 100)
+        # header.resizeSection(self.supplier_index, 100)
+        header.resizeSection(self.supplier_index, totalWidth * 0.15)
         header.setSectionResizeMode(self.qty_index, QHeaderView.Interactive)
-        header.resizeSection(self.qty_index, 100)
+        # header.resizeSection(self.qty_index, 100)
+        header.resizeSection(self.qty_index, totalWidth * 0.15)
         header.setSectionResizeMode(self.note_index, QHeaderView.Interactive)
-        header.resizeSection(self.note_index, 500)
+        # header.resizeSection(self.note_index, 500)
+        header.resizeSection(self.note_index, totalWidth * 0.6)
 
         # 启用表格排序
         self.table_widget.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
