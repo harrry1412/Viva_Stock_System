@@ -153,8 +153,9 @@ class App(QMainWindow):
 
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(7)  #总列数
-        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "类型", "供货商", "数量", "备注", "记录", "操作"])
+        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "类型", "供货商", "数量", "备注", "记录"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table_widget.verticalHeader().setVisible(False)
         self.populate_table()
         self.layout.addWidget(self.table_widget)
         self.central_widget.setLayout(self.layout)
@@ -181,9 +182,9 @@ class App(QMainWindow):
 
         # 设置所有列号
         self.set_all_column_index()
-
+        
         totalWidth=self.table_widget.width()
-        print('Table Width: '+str(totalWidth))
+        
         header.setSectionResizeMode(self.image_index, QHeaderView.Interactive)
         # header.resizeSection(self.image_index, 200)
         header.resizeSection(self.image_index, totalWidth * 0.3)
@@ -202,6 +203,7 @@ class App(QMainWindow):
         header.setSectionResizeMode(self.note_index, QHeaderView.Interactive)
         # header.resizeSection(self.note_index, 500)
         header.resizeSection(self.note_index, totalWidth * 0.6)
+        
 
         # 启用表格排序
         self.table_widget.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
