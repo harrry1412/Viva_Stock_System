@@ -28,12 +28,13 @@ from AboutDialog import AboutDialog
 from ClickableLineEdit import ClickableLineEdit
 import datetime
 from EditProductDialog import EditProductDialog
+import time
 
 
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.0.0'
+        self.version='V7.0.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -195,6 +196,7 @@ class App(QMainWindow):
         self.table_widget.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
 
         self.showMaximized()
+        time.sleep(1)
 
         self.show()
 
@@ -213,7 +215,6 @@ class App(QMainWindow):
 
     # Overwrite resizeEvent method
     def resizeEvent(self, event):
-        print('----------RESIZED-----------')
         self.adjustColumnWidths()
         super().resizeEvent(event)
 
