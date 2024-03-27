@@ -352,17 +352,22 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            query = "SELECT count(*) FROM user_permission WHERE usr=%s AND permission=%s"
+            query = "SELECT stat FROM user_permission WHERE usr=%s AND permission=%s"
             
             cursor.execute(query, (user, permission))
-            (count,) = cursor.fetchone()
-            return count > 0
+            result = cursor.fetchone()
+            if result:
+                stat = result[0]
+                return stat == 1
+            else:
+                return False
         except Exception as e:
             print(f"Error checking user permission: {e}")
             return False
         finally:
             if conn and conn.is_connected():
                 conn.close()
+
 
 
     def delete_record(self, id, user, date, now):
