@@ -1,7 +1,7 @@
 import os
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout,
-    QComboBox, QFileDialog, QMessageBox
+    QComboBox, QFileDialog, QMessageBox, QSpacerItem, QSizePolicy
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
@@ -10,13 +10,13 @@ import shutil
 
 class EditProductDialog(QDialog):
     def __init__(self, parent=None, old_info=None):
-        if old_info==None:
-            old_info={}
-        self.old_info=old_info
+        if old_info is None:
+            old_info = {}
+        self.old_info = old_info
         super().__init__(parent)
         self.setWindowTitle('编辑产品')
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.setFixedSize(400, 400)
+        self.setFixedSize(400, 500)  # 增加窗口高度
         self.layout = QVBoxLayout()
 
         font = QFont()
@@ -66,7 +66,29 @@ class EditProductDialog(QDialog):
         self.layout.addWidget(self.category_label)
         self.layout.addWidget(self.category_input)
         self.layout.addWidget(self.image_label)
-        self.layout.addWidget(self.add_image_button)
+        
+        # 将选择图片按钮和删除产品按钮放在同一个水平布局中
+        button_layout = QVBoxLayout()
+        
+        self.add_image_button.setFont(font)
+        self.add_image_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        button_layout.addWidget(self.add_image_button)
+
+        # 添加固定高度的空白区域
+        spacer = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        button_layout.addItem(spacer)
+
+        self.delete_button = QPushButton('删除产品')
+        self.delete_button.setFont(font)
+        self.delete_button.setStyleSheet('background-color: red; color: white; border: 1px solid black;')
+        self.delete_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        button_layout.addWidget(self.delete_button)
+
+        self.layout.addLayout(button_layout)
+
+        # 再次添加固定高度的空白区域
+        spacer_bottom = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.layout.addItem(spacer_bottom)
 
         button_layout = QHBoxLayout()
         self.save_button = QPushButton('保存')
@@ -79,6 +101,7 @@ class EditProductDialog(QDialog):
 
         # 按钮事件
         self.add_image_button.clicked.connect(self.select_image)
+        self.delete_button.clicked.connect(self.delete_product)
         self.save_button.clicked.connect(self.save_changes)
         self.cancel_button.clicked.connect(self.reject)
 
@@ -105,12 +128,12 @@ class EditProductDialog(QDialog):
         file_dialog.setOptions(options)
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg *.bmp *.gif)")
         file_dialog.setViewMode(QFileDialog.List)
-        file_dialog.setFileMode(QFileDialog.ExistingFiles)
-        file_paths, _ = file_dialog.getOpenFileNames(self, '选择图片', '', 'Images (*.png *.jpg *.jpeg *.bmp *.gif)')
+        file_dialog.setFileMode(QFileDialog.ExistingFile)  # 设置为只能选择一个文件
+        file_path, _ = file_dialog.getOpenFileName(self, '选择图片', '', 'Images (*.png *.jpg *.jpeg *.bmp *.gif)')
 
-        if file_paths:
-            # 我们只保存第一张图片的路径，您可以根据需求来调整
-            self.selected_image_path = file_paths[0]  # 假设我们只处理第一个选中的文件
+        if file_path:
+            # 我们只保存所选图片的路径
+            self.selected_image_path = file_path
             # 生成新文件名
             _, ext = os.path.splitext(self.selected_image_path)
             # 对model进行处理：替换/为-，去除(之后的内容（如果有），并去除非法字符
@@ -121,14 +144,12 @@ class EditProductDialog(QDialog):
 
             self.image_label.setText('图片: 图片已上传')
 
-
     def copy_images_to_folder(self):
         # 如果任一路径为None，方法不执行任何操作
         if self.selected_image_path != '' and self.new_image_path != '':
             print(self.selected_image_path)
             print(self.new_image_path)
             shutil.copy(self.selected_image_path, self.new_image_path)
-
 
     def get_product_data(self):
         # 获取并验证输入数据
@@ -153,7 +174,6 @@ class EditProductDialog(QDialog):
             'image': image
         }
 
-    
     def save_changes(self):
         # 获取输入值
         model = self.model_input.text().strip()
@@ -197,7 +217,11 @@ class EditProductDialog(QDialog):
                 except OSError as e:
                     print(f"Error renaming file: {e}")
 
-
         # 如果所有检查都通过，接受对话框并关闭
         self.accept()
 
+    def delete_product(self):
+        reply = QMessageBox.warning(self, '警告', '您确定要删除该产品吗？', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            print('-------------DELETED-------------')
+            # 在这里添加实际的删除逻辑

@@ -28,7 +28,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            cursor.execute("SELECT DISTINCT supplier FROM rug")
+            cursor.execute("SELECT DISTINCT supplier FROM rug where deleted=0")
             suppliers = [row[0] for row in cursor.fetchall()]
             return suppliers
         except Exception as e:
@@ -43,7 +43,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            cursor.execute("SELECT DISTINCT category FROM rug")
+            cursor.execute("SELECT DISTINCT category FROM rug where deleted=0")
             categories = [row[0] for row in cursor.fetchall()]
             return categories
         except Exception as e:
@@ -58,7 +58,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            cursor.execute("SELECT id, qty, supplier, category, note, image FROM rug ORDER BY supplier, sort, id ASC")
+            cursor.execute("SELECT id, qty, supplier, category, note, image FROM rug where deleted=0 ORDER BY supplier, sort, id ASC")
             rows = cursor.fetchall()
             return rows
         except Exception as e:
@@ -73,7 +73,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor(dictionary=True)  # 使用字典格式的游标
-            query = "SELECT * FROM rug WHERE id = %s"
+            query = "SELECT * FROM rug WHERE id = %s and deleted=0"
             cursor.execute(query, (rug_id,))
             rug_data = cursor.fetchall()
             if rug_data:
@@ -101,7 +101,7 @@ class DatabaseManager:
             conn = self.connect()
             cursor = conn.cursor()
             # 构建包含排序方向参数的查询
-            query = f"SELECT id, qty, supplier, category, note, image FROM rug ORDER BY {key} {direction}"
+            query = f"SELECT id, qty, supplier, category, note, image FROM rug where deleted=0 ORDER BY {key} {direction}"
             cursor.execute(query)
             rows = cursor.fetchall()
             return rows
@@ -136,7 +136,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            update_query = "UPDATE rug SET qty = %s WHERE id = %s"
+            update_query = "UPDATE rug SET qty = %s WHERE id = %s and deleted=0"
             cursor.execute(update_query, (new_quantity, rug_id))
             conn.commit()
             return True
@@ -252,7 +252,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            query = "SELECT count(*) FROM rug WHERE id=%s"
+            query = "SELECT count(*) FROM rug WHERE id=%s and deleted=0"
             
             cursor.execute(query, (id,))
             (count,) = cursor.fetchone()
@@ -303,7 +303,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            update_query = "UPDATE rug SET note = %s WHERE id = %s"
+            update_query = "UPDATE rug SET note = %s WHERE id = %s and deleted=0"
             cursor.execute(update_query, (note, rug_id))
             conn.commit()
             return True
@@ -325,7 +325,7 @@ class DatabaseManager:
             update_query = """
             UPDATE rug
             SET id = %s, supplier = %s, category = %s, image = %s
-            WHERE id = %s
+            WHERE id = %s and deleted=0
             """
             # 执行更新操作
             cursor.execute(update_query, (
@@ -427,7 +427,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             query = """
             SELECT qty FROM rug
-            WHERE id=%s;
+            WHERE id=%s and deleted=0;
             """
             
             # 执行查询操作
