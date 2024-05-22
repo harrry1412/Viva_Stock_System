@@ -34,7 +34,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.1.1'
+        self.version='V7.1.2'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -469,7 +469,7 @@ class App(QMainWindow):
             QMessageBox.warning(self, '警告', '账户权限不足，无法修改数量。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
         item = self.table_widget.item(row, self.qty_index)
@@ -549,7 +549,7 @@ class App(QMainWindow):
             QMessageBox.warning(self, '警告', '账户权限不足，无法修改产品数据。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
         rug_id = self.table_widget.item(row, self.id_index).text()
@@ -580,7 +580,7 @@ class App(QMainWindow):
             QMessageBox.warning(self, '警告', '账户权限不足，无法添加新品。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
         add_product_dialog = AddProductDialog(self)
@@ -624,7 +624,7 @@ class App(QMainWindow):
             QMessageBox.warning(self, '警告', '账户权限不足，无法删除记录。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用已应用更新。')
+            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
         reply = QMessageBox.question(self, '确认删除', '你确定要删除这条记录吗？',
                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)

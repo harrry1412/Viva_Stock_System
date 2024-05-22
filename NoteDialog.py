@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTextCursor
 
 
 
@@ -51,6 +52,7 @@ class NoteDialog(QDialog):
         self.setLayout(self.layout)
 
         self.note_input.setPlainText(note)  # 使用 setPlainText 设置多行文本
+        self.note_input.moveCursor(QTextCursor.End)
         self.rug_id = rug_id
 
     def get_new_note(self):
