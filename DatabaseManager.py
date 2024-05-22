@@ -387,7 +387,32 @@ class DatabaseManager:
             self.update_last_modified_time(user)  # 更新最后修改时间
             return True
         except Exception as e:
-            print(f"Error updating record: {e}")
+            print(f"Error deleting record: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def delete_product(self, id, user, now):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = """
+            UPDATE rug
+            SET del_user = %s, 
+                del_date = %s,
+                deleted = 1
+            WHERE id = %s AND deleted=0;
+            """
+            cursor.execute(query, (user, now, id))
+            conn.commit()
+            self.update_last_modified_time(user)  # 更新最后修改时间
+            return True
+        except Exception as e:
+            print(f"Error deleting product/rug: {e}")
             if conn:
                 conn.rollback()
             return False

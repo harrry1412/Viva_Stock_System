@@ -34,7 +34,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.1.2'
+        self.version='V7.2.2'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -544,7 +544,7 @@ class App(QMainWindow):
         if self.logged != 1:
             QMessageBox.warning(self, '警告', '您未登录，无法修改产品数据！')
             return
-        permission=self.db_manager.check_user_permission(self.user, 'edit_product')
+        permission = self.db_manager.check_user_permission(self.user, 'edit_product')
         if not permission:
             QMessageBox.warning(self, '警告', '账户权限不足，无法修改产品数据。')
             return
@@ -554,21 +554,23 @@ class App(QMainWindow):
 
         rug_id = self.table_widget.item(row, self.id_index).text()
         old_info = self.db_manager.fetch_rug_by_id(rug_id)
-        edit_product_dialog = EditProductDialog(self, old_info)
+        edit_product_dialog = EditProductDialog(self, old_info, self.user, self.db_manager)
+        edit_product_dialog.delete_signal.connect(self.refresh_window)  # 连接信号到刷新窗口的处理函数
+
         result = edit_product_dialog.exec_()
         if result == QDialog.Accepted:
             new_info = edit_product_dialog.get_product_data()
             if new_info:
-                success=self.update_product_to_database(rug_id, new_info)
-                if success and self.user!='admin':
+                success = self.update_product_to_database(rug_id, new_info)
+                if success and self.user != 'admin':
                     # insert into database success, copy image now
                     edit_product_dialog.copy_images_to_folder()
-                    date=datetime.datetime.now()
+                    date = datetime.datetime.now()
                     self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
                 self.refresh_window()
 
     def update_product_to_database(self, old_rug_id, new_info):
-        success=self.db_manager.update_rug_info(old_rug_id, new_info)
+        success = self.db_manager.update_rug_info(old_rug_id, new_info)
         return success
 
     def show_add_product_dialog(self):

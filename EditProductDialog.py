@@ -6,10 +6,15 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 import shutil
+import datetime
+from PyQt5.QtCore import pyqtSignal
 
 
 class EditProductDialog(QDialog):
-    def __init__(self, parent=None, old_info=None):
+    delete_signal = pyqtSignal()  # 定义一个自定义信号
+    def __init__(self, parent=None, old_info=None, user='', db_manager=None):
+        self.user=user
+        self.db_manager=db_manager
         if old_info is None:
             old_info = {}
         self.old_info = old_info
@@ -223,5 +228,9 @@ class EditProductDialog(QDialog):
     def delete_product(self):
         reply = QMessageBox.warning(self, '警告', '您确定要删除该产品吗？', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            print('-------------DELETED-------------')
-            # 在这里添加实际的删除逻辑
+            date_now = datetime.datetime.now()
+            success = self.db_manager.delete_product(self.old_info['id'], self.user, date_now)
+            if success:
+                self.delete_signal.emit()  # 发出信号
+                self.close()
+
