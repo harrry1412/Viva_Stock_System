@@ -1,6 +1,6 @@
 import configparser
 import mysql.connector
-from mysql.connector import pooling
+from mysql.connector import pooling, Error
 import datetime
 
 
@@ -16,12 +16,24 @@ class DatabaseManager:
         }
         self.pool_name = 'mypool'
         self.pool_size = 5  # 这是连接池中连接的数量
-        self.pool = pooling.MySQLConnectionPool(pool_name=self.pool_name,
-                                                pool_size=self.pool_size,
-                                                **self.database_config)
+        self.initialized = False
+        try:
+            self.pool = pooling.MySQLConnectionPool(pool_name=self.pool_name,
+                                                    pool_size=self.pool_size,
+                                                    **self.database_config)
+            self.initialized = True
+        except Error as e:
+            print(f"Error creating connection pool: {e}")
 
     def connect(self):
-        return self.pool.get_connection()
+        if not self.initialized:
+            print("Connection pool is not initialized.")
+            return None
+        try:
+            return self.pool.get_connection()
+        except Error as e:
+            print(f"Error connecting to the database: {e}")
+            return None
     
     def fetch_supplier(self):
         conn = None

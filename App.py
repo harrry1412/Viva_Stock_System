@@ -34,7 +34,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.2.2'
+        self.version='V7.2.3'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -50,6 +50,9 @@ class App(QMainWindow):
         self.order_key='none'
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
+        if not self.db_manager.initialized:
+            QMessageBox.warning(self, '警告', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否连接到PEPLINK网络')
+            sys.exit(1)  # 终止程序
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.initUI()
         self.undo_stack = []
