@@ -34,7 +34,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.2.3'
+        self.version='V7.2.4'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -54,6 +54,9 @@ class App(QMainWindow):
             QMessageBox.warning(self, '警告', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否连接到PEPLINK网络')
             sys.exit(1)  # 终止程序
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
+        self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
+        if not os.path.exists(self.base_path):
+            QMessageBox.warning(self, '警告', '请确保办公室Helen电脑已连接到PEPLINK网络\n\n否则图片可能无法正常显示')
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []
@@ -246,11 +249,9 @@ class App(QMainWindow):
                 # 如果当前是默认顺序或未设置，切换到降序
                 self.apply_order(order_key, 'DESC')
                 self.sorting_states[logicalIndex] = 'DESC'
-
-
+    
     def make_full_image_path(self, image_file_name):
-        base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
-        return base_path + image_file_name if image_file_name else None
+        return self.base_path + image_file_name if image_file_name else None
 
     def get_suppliers(self):
         if self.supplier_list is None:
