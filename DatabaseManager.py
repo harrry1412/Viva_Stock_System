@@ -366,7 +366,10 @@ class DatabaseManager:
         conn = None
         try:
             conn = self.connect()
-            cursor = conn.cursor()
+            if conn:
+                cursor = conn.cursor()
+            else:
+                return -1
             query = "SELECT stat FROM user_permission WHERE usr=%s AND permission=%s"
             
             cursor.execute(query, (user, permission))

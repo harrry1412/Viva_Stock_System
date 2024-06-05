@@ -34,7 +34,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.2.4'
+        self.version='V7.3.4'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -471,6 +471,8 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '您未登录，无法修改数量。')
             return
         permission=self.db_manager.check_user_permission(self.user, 'edit_qty')
+        if permission==-1:
+            self.exit_with_conn_error()
         if not permission:
             self.show_message('warn', '警告', '账户权限不足，无法修改数量。')
             return
@@ -522,6 +524,8 @@ class App(QMainWindow):
         if self.logged == 1:
             permission_level=1            
         permission=self.db_manager.check_user_permission(self.user, 'add_product')
+        if permission==-1:
+            self.exit_with_conn_error()
         if permission:
             permission_level=2
 
@@ -559,6 +563,8 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '您未登录，无法修改产品数据。')
             return
         permission = self.db_manager.check_user_permission(self.user, 'edit_product')
+        if permission==-1:
+            self.exit_with_conn_error()
         if not permission:
             self.show_message('warn', '警告', '账户权限不足，无法修改产品数据。')
             return
@@ -594,6 +600,8 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '您未登录，无法添加新品。')
             return
         permission=self.db_manager.check_user_permission(self.user, 'add_product')
+        if permission==-1:
+            self.exit_with_conn_error()
         if not permission:
             self.show_message('warn', '警告', '账户权限不足，无法添加新品。')
             return
@@ -640,6 +648,8 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '您未登录，无法删除记录。')
             return
         permission=self.db_manager.check_user_permission(self.user, 'delete_record')
+        if permission==-1:
+            self.exit_with_conn_error()
         if not permission:
             self.show_message('warn', '警告', '账户权限不足，无法删除记录。')
             return
@@ -879,7 +889,7 @@ class App(QMainWindow):
         message_box.exec_()
         
     def exit_with_conn_error(self):
-        self.show_message('warn', '数据更新失败', '数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
+        self.show_message('warn', '错误', '数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
         sys.exit(1)  # 终止程序
     
     def show_about_dialog(self):
