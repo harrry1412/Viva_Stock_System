@@ -51,12 +51,12 @@ class App(QMainWindow):
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
         if not self.db_manager.initialized:
-            QMessageBox.warning(self, '警告', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否连接到PEPLINK网络')
+            QMessageBox.warning(self, '警告', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
             sys.exit(1)  # 终止程序
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
         if not os.path.exists(self.base_path):
-            QMessageBox.warning(self, '警告', '请确保办公室Helen电脑已连接到PEPLINK网络\n\n否则图片可能无法正常显示')
+            QMessageBox.warning(self, '警告', '图片获取失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []
@@ -269,6 +269,8 @@ class App(QMainWindow):
         self.set_all_column_index
         if column==self.image_index:
             self.show_full_size_image(row)
+            if not os.path.exists(self.base_path):
+                QMessageBox.warning(self, '警告', '图片显示失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
         elif column==self.qty_index:
             self.show_edit_quantity_dialog(row)
         elif column==self.note_index:
