@@ -129,7 +129,10 @@ class DatabaseManager:
         conn = None
         try:
             conn = self.connect()
-            cursor = conn.cursor()
+            if conn:
+                cursor = conn.cursor()
+            else:
+                return -1
             query = "SELECT pwd, status FROM user WHERE name=%s"
             cursor.execute(query, (username,))
             row = cursor.fetchone()

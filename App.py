@@ -51,12 +51,12 @@ class App(QMainWindow):
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
         if not self.db_manager.initialized:
-            QMessageBox.warning(self, '警告', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
+            self.show_message('warn', '数据库连接失败', '请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
             sys.exit(1)  # 终止程序
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
         if not os.path.exists(self.base_path):
-            QMessageBox.warning(self, '警告', '图片获取失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+            self.show_message('warn', '图片获取失败', '请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []
@@ -270,7 +270,7 @@ class App(QMainWindow):
         if column==self.image_index:
             self.show_full_size_image(row)
             if not os.path.exists(self.base_path):
-                QMessageBox.warning(self, '警告', '图片显示失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+                self.show_message('warn', '图片显示失败', '请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
         elif column==self.qty_index:
             self.show_edit_quantity_dialog(row)
         elif column==self.note_index:
@@ -468,14 +468,14 @@ class App(QMainWindow):
 
     def show_edit_quantity_dialog(self, row):
         if self.logged != 1:
-            QMessageBox.warning(self, '警告', '您未登录，无法修改数量。')
+            self.show_message('warn', '警告', '您未登录，无法修改数量。')
             return
         permission=self.db_manager.check_user_permission(self.user, 'edit_qty')
         if not permission:
-            QMessageBox.warning(self, '警告', '账户权限不足，无法修改数量。')
+            self.show_message('warn', '警告', '账户权限不足，无法修改数量。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
+            self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
         item = self.table_widget.item(row, self.qty_index)
@@ -494,12 +494,16 @@ class App(QMainWindow):
             
             edit_date=datetime.datetime.now()
             if user!='admin':
-                self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date, edit_date)
+                success=self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date, edit_date)
+                if not success:
+                    self.exit_with_conn_error()
             self.update_quantity(row, rug_id, new_quantity)
 
     def update_quantity(self, row, rug_id, new_quantity):
         try:
-            self.db_manager.update_rug_quantity(rug_id, new_quantity)
+            success=self.db_manager.update_rug_quantity(rug_id, new_quantity)
+            if not success:
+                self.exit_with_conn_error()
             item = self.table_widget.item(row, self.qty_index)
             item.setText(str(int(new_quantity)))
         except mysql.connector.Error as err:
@@ -532,13 +536,17 @@ class App(QMainWindow):
     def update_note(self, row, rug_id, new_note, old_note):
         try:
             # 更新数据库中的备注信息
-            self.db_manager.update_note(new_note, rug_id)
+            success=self.db_manager.update_note(new_note, rug_id)
+            if not success:
+                self.exit_with_conn_error()
 
             #Update note_record in database
             date=datetime.datetime.now()
             user=self.user
             if user!='admin' and new_note!=old_note:
-                self.db_manager.insert_note_record(rug_id, user, old_note, new_note, date)
+                success=self.db_manager.insert_note_record(rug_id, user, old_note, new_note, date)
+                if not success:
+                    self.exit_with_conn_error()
 
             # 更新表格中的备注信息
             item = self.table_widget.item(row, self.note_index)
@@ -548,14 +556,14 @@ class App(QMainWindow):
 
     def show_editProduct_dialog(self, row):
         if self.logged != 1:
-            QMessageBox.warning(self, '警告', '您未登录，无法修改产品数据！')
+            self.show_message('warn', '警告', '您未登录，无法修改产品数据。')
             return
         permission = self.db_manager.check_user_permission(self.user, 'edit_product')
         if not permission:
-            QMessageBox.warning(self, '警告', '账户权限不足，无法修改产品数据。')
+            self.show_message('warn', '警告', '账户权限不足，无法修改产品数据。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
+            self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
         rug_id = self.table_widget.item(row, self.id_index).text()
@@ -568,11 +576,13 @@ class App(QMainWindow):
             new_info = edit_product_dialog.get_product_data()
             if new_info:
                 success = self.update_product_to_database(rug_id, new_info)
+                if not success:
+                    self.exit_with_conn_error()
                 if success and self.user != 'admin':
                     # insert into database success, copy image now
                     edit_product_dialog.copy_images_to_folder()
                     date = datetime.datetime.now()
-                    self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
+                    success=self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
                 self.refresh_window()
 
     def update_product_to_database(self, old_rug_id, new_info):
@@ -581,14 +591,14 @@ class App(QMainWindow):
 
     def show_add_product_dialog(self):
         if self.logged != 1:
-            QMessageBox.warning(self, '警告', '您未登录，无法添加新品。')
+            self.show_message('warn', '警告', '您未登录，无法添加新品。')
             return
         permission=self.db_manager.check_user_permission(self.user, 'add_product')
         if not permission:
-            QMessageBox.warning(self, '警告', '账户权限不足，无法添加新品。')
+            self.show_message('warn', '警告', '账户权限不足，无法添加新品。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
+            self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
         add_product_dialog = AddProductDialog(self)
@@ -600,6 +610,8 @@ class App(QMainWindow):
                 if success:
                     # insert into database success, copy image now
                     add_product_dialog.copy_images_to_folder()
+                else:
+                    self.exit_with_conn_error()
                 self.refresh_window()
     
     def add_product_to_database(self, product_data):
@@ -625,22 +637,26 @@ class App(QMainWindow):
 
     def delete_record(self, rug_id, editdate, rug_row):
         if self.logged != 1:
-            QMessageBox.warning(self, '警告', '您未登录，无法删除记录。')
+            self.show_message('warn', '警告', '您未登录，无法删除记录。')
             return
         permission=self.db_manager.check_user_permission(self.user, 'delete_record')
         if not permission:
-            QMessageBox.warning(self, '警告', '账户权限不足，无法删除记录。')
+            self.show_message('warn', '警告', '账户权限不足，无法删除记录。')
             return
         if not self.is_latest():
-            QMessageBox.warning(self, '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
+            self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
         reply = QMessageBox.question(self, '确认删除', '你确定要删除这条记录吗？',
                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             date_now=datetime.datetime.now()
             success=self.db_manager.delete_record(rug_id, self.user, editdate, date_now)
+            if not success:
+                self.exit_with_conn_error()
             old_qty=self.db_manager.fetch_record_bef(rug_id, editdate)
             success=success and self.db_manager.update_rug_quantity(rug_id, old_qty)
+            if not success:
+                self.exit_with_conn_error()
             return success
         else:
             return False
@@ -691,26 +707,9 @@ class App(QMainWindow):
                 self.search_results=[]
                 self.table_widget.scrollToTop()
 
-                # 创建一个消息框
-                logout_message_box = QMessageBox()
-                logout_message_box.setIcon(QMessageBox.Information)
+                self.show_message('info', '搜索失败', '找不到结果')
 
-                # 设置消息框的窗口图标
-                if getattr(sys, 'frozen', False):
-                    # 打包后的情况
-                    application_path = sys._MEIPASS
-                else:
-                    # 从源代码运行的情况
-                    application_path = os.path.dirname(os.path.abspath(__file__))
-                icon_path = os.path.join(application_path, 'vivastock.ico')
-                logout_message_box.setWindowIcon(QIcon(icon_path))
-
-                logout_message_box.setText("找不到结果")
-                logout_message_box.setWindowTitle("搜索失败")
-                logout_message_box.setStandardButtons(QMessageBox.Ok)
                 
-                # 显示消息框
-                logout_message_box.exec_()
 
 
     def show_current_result(self):
@@ -801,26 +800,7 @@ class App(QMainWindow):
         self.welcome_label.setText('Welcome Guest')
         self.user = 'Guest'
         
-        # 创建一个消息框
-        logout_message_box = QMessageBox()
-        logout_message_box.setIcon(QMessageBox.Information)
-
-        # 设置消息框的窗口图标
-        if getattr(sys, 'frozen', False):
-            # 打包后的情况
-            application_path = sys._MEIPASS
-        else:
-            # 从源代码运行的情况
-            application_path = os.path.dirname(os.path.abspath(__file__))
-        icon_path = os.path.join(application_path, 'vivastock.ico')
-        logout_message_box.setWindowIcon(QIcon(icon_path))
-
-        logout_message_box.setText("Logout Successful")
-        logout_message_box.setWindowTitle("Logout")
-        logout_message_box.setStandardButtons(QMessageBox.Ok)
-        
-        # 显示消息框
-        logout_message_box.exec_()
+        self.show_message('info', 'Logout', 'Logout Successful')
 
 
     def show_login_dialog(self):
@@ -835,15 +815,17 @@ class App(QMainWindow):
                     # Login successfully
                     self.login_successful(username)
                 elif login_verify_code==0:
-                    self.show_error_message('登录失败', '用户名或密码错误，请重试')
+                    self.show_message('warn', '登录失败', '用户名或密码错误，请重试')
                 else:
-                    self.show_error_message('登录失败', '账号暂时不可用，请联系系统管理员')
+                    self.show_message('warn', '登录失败', '账号暂时不可用，请联系系统管理员')
             else:
-                self.show_error_message('登录失败', '用户名或密码错误，请重试')
+                self.show_message('warn', '登录失败', '用户名或密码错误，请重试')
 
 
     def verify_login(self, username, password):
         user_info = self.db_manager.fetch_userPwd_status(username)
+        if (user_info==-1):
+            self.exit_with_conn_error()
         if user_info:
             # 检查密码是否匹配
             if password == user_info['password']:
@@ -871,14 +853,38 @@ class App(QMainWindow):
         else:
             return True
 
-    def show_error_message(self, title, message):
-        QMessageBox.warning(self, title, message)
+    def show_message(self,type, title, message):
+        # 创建一个消息框
+        message_box = QMessageBox()
+        if (type=='info'):
+            message_box.setIcon(QMessageBox.Information)
+        elif (type=='warn'):
+            message_box.setIcon(QMessageBox.Warning)
+
+        # 设置消息框的窗口图标
+        if getattr(sys, 'frozen', False):
+            # 打包后的情况
+            application_path = sys._MEIPASS
+        else:
+            # 从源代码运行的情况
+            application_path = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(application_path, 'vivastock.ico')
+        message_box.setWindowIcon(QIcon(icon_path))
+
+        message_box.setText(message)
+        message_box.setWindowTitle(title)
+        message_box.setStandardButtons(QMessageBox.Ok)
+        
+        # 显示消息框
+        message_box.exec_()
+        
+    def exit_with_conn_error(self):
+        self.show_message('warn', '数据更新失败', '数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
+        sys.exit(1)  # 终止程序
     
     def show_about_dialog(self):
         about_dialog = AboutDialog(self, self.version)
         about_dialog.exec_()
-
-
 
     def export_to_excel(self):
         export_dialog = QFileDialog(self)
@@ -937,9 +943,9 @@ class App(QMainWindow):
                     # 保存 Excel 文件
                     workbook.save(selected_file)
 
-                    QMessageBox.information(self, '导出完成', f'已导出数据到 {selected_file}')
+                    self.show_message('info', '导出完成', f'已导出数据到 {selected_file}')
                 except Exception as e:
-                    QMessageBox.warning(self, '导出失败', f'导出时出现错误: {str(e)}')
+                    self.show_message('warn', '导出失败', f'导出时出现错误: {str(e)}')
 
     def set_all_column_index(self):
         self.image_index=self.get_column_index_by_name('图片')

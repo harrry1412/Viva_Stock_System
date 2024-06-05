@@ -233,4 +233,6 @@ class EditProductDialog(QDialog):
             if success:
                 self.delete_signal.emit()  # 发出信号
                 self.close()
+            else:
+                self.parent.exitWithConnError()
 
