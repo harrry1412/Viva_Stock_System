@@ -34,7 +34,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.4.4'
+        self.version='V7.4.5'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -51,7 +51,7 @@ class App(QMainWindow):
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
         if not self.db_manager.initialized:
-            self.show_message('warn', '错误', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
+            self.show_message('warn', '错误', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络\n\n如果网络连接一切正常，运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试')
             sys.exit(1)  # 终止程序
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
