@@ -34,7 +34,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.3.4'
+        self.version='V7.4.4'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -51,12 +51,12 @@ class App(QMainWindow):
         self.order_direction='ASC'
         self.db_manager = DatabaseManager()
         if not self.db_manager.initialized:
-            self.show_message('warn', '数据库连接失败', '请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
+            self.show_message('warn', '错误', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
             sys.exit(1)  # 终止程序
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
         if not os.path.exists(self.base_path):
-            self.show_message('warn', '图片获取失败', '请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+            self.show_message('warn', '警告', '图片获取失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
         self.initUI()
         self.undo_stack = []
         self.redo_stack = []
@@ -270,7 +270,7 @@ class App(QMainWindow):
         if column==self.image_index:
             self.show_full_size_image(row)
             if not os.path.exists(self.base_path):
-                self.show_message('warn', '图片显示失败', '请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+                self.show_message('warn', '错误', '图片显示失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
         elif column==self.qty_index:
             self.show_edit_quantity_dialog(row)
         elif column==self.note_index:
@@ -717,7 +717,7 @@ class App(QMainWindow):
                 self.search_results=[]
                 self.table_widget.scrollToTop()
 
-                self.show_message('info', '搜索失败', '找不到结果')
+                self.show_message('info', '错误', '搜索失败\n\n找不到结果')
 
                 
 
@@ -825,11 +825,11 @@ class App(QMainWindow):
                     # Login successfully
                     self.login_successful(username)
                 elif login_verify_code==0:
-                    self.show_message('warn', '登录失败', '用户名或密码错误，请重试')
+                    self.show_message('warn', '错误', '登录失败\n\n用户名或密码错误，请重试')
                 else:
-                    self.show_message('warn', '登录失败', '账号暂时不可用，请联系系统管理员')
+                    self.show_message('warn', '错误', '登录失败\n\n账号暂时不可用，请联系系统管理员')
             else:
-                self.show_message('warn', '登录失败', '用户名或密码错误，请重试')
+                self.show_message('warn', '错误', '登录失败\n\n用户名或密码错误，请重试')
 
 
     def verify_login(self, username, password):
@@ -955,7 +955,7 @@ class App(QMainWindow):
 
                     self.show_message('info', '导出完成', f'已导出数据到 {selected_file}')
                 except Exception as e:
-                    self.show_message('warn', '导出失败', f'导出时出现错误: {str(e)}')
+                    self.show_message('warn', '导出失败', f'导出失败\n\n导出时出现错误: {str(e)}')
 
     def set_all_column_index(self):
         self.image_index=self.get_column_index_by_name('图片')

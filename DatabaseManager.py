@@ -3,27 +3,52 @@ import mysql.connector
 from mysql.connector import pooling, Error
 import datetime
 
+import os
+import sys
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QIcon
 
 class DatabaseManager:
     def __init__(self):
+        # 默认配置文件路径
+        config_path = 'mysql.txt'
+        # 尝试连接
+        self.initialized=False
+        if not self.try_connect(config_path):
+            # 如果第一次连接失败，尝试备用路径
+            backup_config_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\mysql.txt'
+            if not self.try_connect(backup_config_path):
+                # 如果备用路径也失败，打印错误信息
+                print("Both attempts to connect to the database have failed.")
+
+    def try_connect(self, config_path):
+        if not os.path.exists(config_path):
+            print(f"Configuration file {config_path} not found.")
+            self.exit_with_conn_error()
+            return False
+
         config = configparser.ConfigParser()
-        config.read('mysql.txt')
-        self.database_config = {
+        config.read(config_path)
+        
+        database_config = {
             'host': config.get('database', 'host'),
             'user': config.get('database', 'user'),
             'password': config.get('database', 'password'),
             'database': config.get('database', 'database')
         }
-        self.pool_name = 'mypool'
-        self.pool_size = 5  # 这是连接池中连接的数量
-        self.initialized = False
+        pool_name = 'mypool'
+        pool_size = 5  # 这是连接池中连接的数量
+
         try:
-            self.pool = pooling.MySQLConnectionPool(pool_name=self.pool_name,
-                                                    pool_size=self.pool_size,
-                                                    **self.database_config)
+            pool = pooling.MySQLConnectionPool(pool_name=pool_name,
+                                               pool_size=pool_size,
+                                               **database_config)
+            self.pool = pool
             self.initialized = True
+            return True
         except Error as e:
-            print(f"Error creating connection pool: {e}")
+            print(f"Error creating connection pool from {config_path}: {e}")
+            return False
 
     def connect(self):
         if not self.initialized:
@@ -562,6 +587,35 @@ class DatabaseManager:
         finally:
             if conn and conn.is_connected():
                 conn.close()
+
+    def show_message(self,type, title, message):
+        # 创建一个消息框
+        message_box = QMessageBox()
+        if (type=='info'):
+            message_box.setIcon(QMessageBox.Information)
+        elif (type=='warn'):
+            message_box.setIcon(QMessageBox.Warning)
+
+        # 设置消息框的窗口图标
+        if getattr(sys, 'frozen', False):
+            # 打包后的情况
+            application_path = sys._MEIPASS
+        else:
+            # 从源代码运行的情况
+            application_path = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(application_path, 'vivastock.ico')
+        message_box.setWindowIcon(QIcon(icon_path))
+
+        message_box.setText(message)
+        message_box.setWindowTitle(title)
+        message_box.setStandardButtons(QMessageBox.Ok)
+        
+        # 显示消息框
+        message_box.exec_()
+        
+    def exit_with_conn_error(self):
+        self.show_message('warn', '错误', '获取备用IP地址失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+        sys.exit(1)  # 终止程序
 
 
 
