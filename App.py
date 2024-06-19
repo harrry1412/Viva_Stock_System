@@ -34,11 +34,11 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version='V7.4.5'
+        self.version = 'V7.5.5'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
-        self.full_size_image_thread_pool.setMaxThreadCount(1) 
+        self.full_size_image_thread_pool.setMaxThreadCount(1)
         self.record_thread_pool = QThreadPool()
         self.record_thread_pool.setMaxThreadCount(1)
         print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
@@ -47,12 +47,12 @@ class App(QMainWindow):
         self.filtered_suppliers = []
         self.filtered_categories = []
         self.image_loaders = []
-        self.order_key='none'
-        self.order_direction='ASC'
-        self.db_manager = DatabaseManager()
-        if not self.db_manager.initialized:
-            self.show_message('warn', '错误', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络\n\n如果网络连接一切正常，运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试')
-            sys.exit(1)  # 终止程序
+        self.order_key = 'none'
+        self.order_direction = 'ASC'
+
+        self.db_manager = None
+        self.init_database_connection()
+
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
         if not os.path.exists(self.base_path):
@@ -62,23 +62,35 @@ class App(QMainWindow):
         self.redo_stack = []
         self.search_results = []
         self.current_result_index = 0
-        self.user='Guest'
+        self.user = 'Guest'
         self.table_widget.cellDoubleClicked.connect(self.handle_cell_clicked)
         self.image_paths = {}  # 添加字典来存储图片路径
         self.last_search = ''
         self.image_loaders = []  # 用于存储 ImageLoader 实例
         self.sorting_states = {}  # 添加属性来保存默认行顺序
-        self.sorting_states = {1: 'default', 2: 'default', 3: 'default'} # 初始化排序状态为默认
-        self.image_index=0
-        self.id_index=0
-        self.category_index=0
-        self.supplier_index=0
-        self.qty_index=0
-        self.note_index=0
-        self.record_index=0
-        self.action_index=0
-        self.refresh_time=datetime.datetime.now()
-        self.logged=0
+        self.sorting_states = {1: 'default', 2: 'default', 3: 'default'}  # 初始化排序状态为默认
+        self.image_index = 0
+        self.id_index = 0
+        self.category_index = 0
+        self.supplier_index = 0
+        self.qty_index = 0
+        self.note_index = 0
+        self.record_index = 0
+        self.action_index = 0
+        self.refresh_time = datetime.datetime.now()
+        self.logged = 0
+
+    def init_database_connection(self):
+        self.loading_dialog = self.show_message('info', '请稍候', '正在连接数据库，请稍候...', temporary=True)
+        QApplication.processEvents()  # 刷新窗口以显示对话框
+
+        self.db_manager = DatabaseManager()
+
+        self.loading_dialog.close()
+
+        if not self.db_manager.initialized:
+            self.show_message('warn', '错误', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络\n\n如果网络连接一切正常，运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试')
+            sys.exit(1)  # 终止程序
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -863,12 +875,12 @@ class App(QMainWindow):
         else:
             return True
 
-    def show_message(self,type, title, message):
+    def show_message(self, type, title, message, temporary=False):
         # 创建一个消息框
         message_box = QMessageBox()
-        if (type=='info'):
+        if type == 'info':
             message_box.setIcon(QMessageBox.Information)
-        elif (type=='warn'):
+        elif type == 'warn':
             message_box.setIcon(QMessageBox.Warning)
 
         # 设置消息框的窗口图标
@@ -884,9 +896,14 @@ class App(QMainWindow):
         message_box.setText(message)
         message_box.setWindowTitle(title)
         message_box.setStandardButtons(QMessageBox.Ok)
-        
-        # 显示消息框
-        message_box.exec_()
+
+        if temporary:
+            message_box.setWindowModality(Qt.ApplicationModal)
+            message_box.show()
+            return message_box
+        else:
+            # 显示消息框
+            message_box.exec_()
         
     def exit_with_conn_error(self):
         self.show_message('warn', '错误', '数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
