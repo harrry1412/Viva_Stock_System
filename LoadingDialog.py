@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QApplication, QSizePolicy
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont, QIcon, QPixmap, QPainter, QBrush, QLinearGradient, QColor
+from PyQt5.QtGui import QFont, QIcon, QPixmap, QPainter, QBrush, QLinearGradient, QColor, QFontMetrics
 import sys
 import os
 
@@ -18,6 +18,11 @@ class LoadingDialog(QDialog):
         ]
         self.current_message_index = 0
 
+        # 获取DPI缩放比例
+        screen = QApplication.primaryScreen()
+        dpi = screen.logicalDotsPerInch()
+        scale_factor = dpi / 96.0  # 96是标准DPI
+
         # 设置无边框窗口
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
 
@@ -34,7 +39,7 @@ class LoadingDialog(QDialog):
 
         # Main message
         self.main_label = QLabel(self.main_message)
-        main_font = QFont("Arial", 16)
+        main_font = QFont("Arial", int(16 * scale_factor))
         self.main_label.setFont(main_font)
         self.main_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.main_label)
@@ -42,26 +47,34 @@ class LoadingDialog(QDialog):
         # 图标
         self.icon_label = QLabel()
         pixmap = QPixmap(icon_path)
-        self.icon_label.setPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.icon_label.setPixmap(pixmap.scaled(int(64 * scale_factor), int(64 * scale_factor), Qt.KeepAspectRatio, Qt.SmoothTransformation))
         self.icon_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.icon_label)
 
         # Secondary message
         self.secondary_label = QLabel(self.messages[self.current_message_index])
-        secondary_font = QFont("Arial", 10)
+        secondary_font = QFont("Arial", int(10 * scale_factor))
         self.secondary_label.setFont(secondary_font)
         self.secondary_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.secondary_label)
 
         # 设计者信息
         self.designer_label = QLabel("Designed by Harry")
-        designer_font = QFont("Arial", 8)
+        designer_font = QFont("Arial", int(8 * scale_factor))
         self.designer_label.setFont(designer_font)
         self.designer_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.designer_label)
 
         self.setLayout(layout)
-        self.setFixedSize(400, 300)
+
+        # 使用 QFontMetrics 计算所需窗口大小
+        font_metrics = QFontMetrics(main_font)
+        width = font_metrics.horizontalAdvance(self.main_message) + 40
+        height = font_metrics.height() * 5 + int(64 * scale_factor) + 80
+
+        # 设置窗口大小策略和大小
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setMinimumSize(width, height)
 
         # 设置背景样式
         self.setStyleSheet("""
