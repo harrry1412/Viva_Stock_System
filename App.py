@@ -25,6 +25,7 @@ from DataFetcher import DataFetcher
 from RecordLoader import RecordLoader
 from ImageLable import ImageLabel
 from AboutDialog import AboutDialog
+from LoadingDialog import LoadingDialog
 from ClickableLineEdit import ClickableLineEdit
 import datetime
 from EditProductDialog import EditProductDialog
@@ -34,7 +35,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V7.5.5'
+        self.version = 'V8.0.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -81,11 +82,17 @@ class App(QMainWindow):
         self.logged = 0
 
     def init_database_connection(self):
-        self.loading_dialog = self.show_message('info', '请稍候', '正在连接数据库，请稍候...', temporary=True)
+        self.loading_dialog = LoadingDialog()
+        self.loading_dialog.show()
         QApplication.processEvents()  # 刷新窗口以显示对话框
 
-        self.db_manager = DatabaseManager()
+        import time
+        start_time = time.time()
 
+        while time.time() - start_time < 5:  # 模拟数据库连接的耗时操作
+            QApplication.processEvents()  # 处理事件循环，保持 UI 响应
+
+        self.db_manager = DatabaseManager()
         self.loading_dialog.close()
 
         if not self.db_manager.initialized:
