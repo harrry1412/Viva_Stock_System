@@ -35,7 +35,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.0.0'
+        self.version = 'V8.0.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -53,12 +53,12 @@ class App(QMainWindow):
 
         self.db_manager = None
         self.init_database_connection()
-
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
+        self.initUI()
         self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
         if not os.path.exists(self.base_path):
-            self.show_message('warn', '警告', '图片获取失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
-        self.initUI()
+            self.show_message('warn', '警告', '图片获取失败，不影响库存系统正常使用\n若要查看图片，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+        
         self.undo_stack = []
         self.redo_stack = []
         self.search_results = []
@@ -93,11 +93,12 @@ class App(QMainWindow):
             QApplication.processEvents()  # 处理事件循环，保持 UI 响应
 
         self.db_manager = DatabaseManager()
-        self.loading_dialog.close()
 
         if not self.db_manager.initialized:
-            self.show_message('warn', '错误', '数据库连接失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络\n\n如果网络连接一切正常，运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试')
+            self.show_message('warn', '错误', '数据库连接失败。\n\n备用IP地址亦无法连接，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络\n\n如果网络连接一切正常，运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试')
             sys.exit(1)  # 终止程序
+
+        self.loading_dialog.close()
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -904,6 +905,9 @@ class App(QMainWindow):
         message_box.setWindowTitle(title)
         message_box.setStandardButtons(QMessageBox.Ok)
 
+        # 设置消息框始终在最上层显示
+        message_box.setWindowFlags(message_box.windowFlags() | Qt.WindowStaysOnTopHint)
+        
         if temporary:
             message_box.setWindowModality(Qt.ApplicationModal)
             message_box.show()
@@ -911,6 +915,7 @@ class App(QMainWindow):
         else:
             # 显示消息框
             message_box.exec_()
+
         
     def exit_with_conn_error(self):
         self.show_message('warn', '错误', '数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')

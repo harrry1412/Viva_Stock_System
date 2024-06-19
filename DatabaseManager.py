@@ -7,6 +7,7 @@ import os
 import sys
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
 
 class DatabaseManager:
     def __init__(self):
@@ -588,12 +589,12 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
-    def show_message(self,type, title, message):
+    def show_message(self, type, title, message):
         # 创建一个消息框
         message_box = QMessageBox()
-        if (type=='info'):
+        if type == 'info':
             message_box.setIcon(QMessageBox.Information)
-        elif (type=='warn'):
+        elif type == 'warn':
             message_box.setIcon(QMessageBox.Warning)
 
         # 设置消息框的窗口图标
@@ -610,11 +611,15 @@ class DatabaseManager:
         message_box.setWindowTitle(title)
         message_box.setStandardButtons(QMessageBox.Ok)
         
+        # 设置消息框始终在最上层显示
+        message_box.setWindowFlags(message_box.windowFlags() | Qt.WindowStaysOnTopHint)
+        
         # 显示消息框
         message_box.exec_()
+
         
     def exit_with_conn_error(self):
-        self.show_message('warn', '错误', '获取备用IP地址失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+        self.show_message('warn', '错误', '数据库连接失败。\n\n获取备用IP地址失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
         sys.exit(1)  # 终止程序
 
 
