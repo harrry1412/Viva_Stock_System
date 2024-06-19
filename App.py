@@ -35,7 +35,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.0.1'
+        self.version = 'V8.0.2'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -57,7 +57,7 @@ class App(QMainWindow):
         self.initUI()
         self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
         if not os.path.exists(self.base_path):
-            self.show_message('warn', '警告', '图片获取失败，不影响库存系统正常使用\n若要查看图片，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+            self.show_message('warn', '警告', '图片获取失败，不影响库存系统正常使用。\n\n若要查看图片，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络。')
         
         self.undo_stack = []
         self.redo_stack = []
@@ -95,7 +95,7 @@ class App(QMainWindow):
         self.db_manager = DatabaseManager()
 
         if not self.db_manager.initialized:
-            self.show_message('warn', '错误', '数据库连接失败。\n\n备用IP地址亦无法连接，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络\n\n如果网络连接一切正常，运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试')
+            self.show_message('warn', '错误', '数据库连接失败。\n\n备用IP地址亦无法连接，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络。\n\n如果网络连接一切正常，请运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试。')
             sys.exit(1)  # 终止程序
 
         self.loading_dialog.close()
@@ -290,7 +290,7 @@ class App(QMainWindow):
         if column==self.image_index:
             self.show_full_size_image(row)
             if not os.path.exists(self.base_path):
-                self.show_message('warn', '错误', '图片显示失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
+                self.show_message('warn', '错误', '图片显示失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络。')
         elif column==self.qty_index:
             self.show_edit_quantity_dialog(row)
         elif column==self.note_index:
@@ -737,7 +737,7 @@ class App(QMainWindow):
                 self.search_results=[]
                 self.table_widget.scrollToTop()
 
-                self.show_message('info', '错误', '搜索失败\n\n找不到结果')
+                self.show_message('info', '错误', '搜索失败\n\n找不到结果。')
 
                 
 
@@ -845,11 +845,11 @@ class App(QMainWindow):
                     # Login successfully
                     self.login_successful(username)
                 elif login_verify_code==0:
-                    self.show_message('warn', '错误', '登录失败\n\n用户名或密码错误，请重试')
+                    self.show_message('warn', '错误', '登录失败\n\n用户名或密码错误，请重试。')
                 else:
-                    self.show_message('warn', '错误', '登录失败\n\n账号暂时不可用，请联系系统管理员')
+                    self.show_message('warn', '错误', '登录失败\n\n账号暂时不可用，请联系系统管理员。')
             else:
-                self.show_message('warn', '错误', '登录失败\n\n用户名或密码错误，请重试')
+                self.show_message('warn', '错误', '登录失败\n\n用户名或密码错误，请重试。')
 
 
     def verify_login(self, username, password):
@@ -918,7 +918,7 @@ class App(QMainWindow):
 
         
     def exit_with_conn_error(self):
-        self.show_message('warn', '错误', '数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络')
+        self.show_message('warn', '错误', '数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络。\n\n如果网络连接一切正常，请运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试。')
         sys.exit(1)  # 终止程序
     
     def show_about_dialog(self):
