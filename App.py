@@ -1,16 +1,18 @@
 from PyQt5.QtCore import QThreadPool
 import sys
 import os
-import openpyxl
 import mysql.connector
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLabel,
-    QHeaderView, QPushButton, QDialog, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView, QHeaderView
+    QHeaderView, QPushButton, QDialog, QHBoxLayout, QMainWindow, QFileDialog, QMessageBox, QApplication, QAbstractItemView, QHeaderView, QProgressDialog
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QTimer
 from pypinyin import lazy_pinyin
+from openpyxl.drawing.image import Image
+from PIL import Image as PilImage
+from openpyxl.styles import Alignment
 
 from DatabaseManager import DatabaseManager
 from EditQuantityDialog import EditQuantityDialog
@@ -29,13 +31,14 @@ from LoadingDialog import LoadingDialog
 from ClickableLineEdit import ClickableLineEdit
 import datetime
 from EditProductDialog import EditProductDialog
+from ExcelExporter import ExcelExporter
 import time
 
 
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.0.3'
+        self.version = 'V8.1.3'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -925,6 +928,7 @@ class App(QMainWindow):
         about_dialog = AboutDialog(self, self.version)
         about_dialog.exec_()
 
+
     def export_to_excel(self):
         export_dialog = QFileDialog(self)
         export_dialog.setDefaultSuffix('xlsx')
@@ -934,57 +938,31 @@ class App(QMainWindow):
         if export_dialog.exec_():
             selected_file = export_dialog.selectedFiles()[0]
             if selected_file:
-                try:
-                    # 获取要导出的数据（从数据库中获得）
-                    db_manager = self.db_manager
-                    selected_suppliers = self.filtered_suppliers
-                    rows_to_export = db_manager.fetch_rugs()
+                # 询问用户是否要导出带图版本
+                reply = QMessageBox.question(self, '导出选项', '是否要导出带图片版本？', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                include_images = reply == QMessageBox.Yes
 
-                    # 指定自定义的列顺序
-                    column_order = ['图片', '型号', '类型', '数量', '供货商', '备注']
+                # 创建并启动导出任务
+                export_runnable = ExcelExporter(self.db_manager, self.filtered_suppliers, selected_file, include_images)
+                export_runnable.signals.finished.connect(lambda: self.on_export_complete(success=True, selected_file=selected_file))
+                export_runnable.signals.error.connect(lambda error_message: self.on_export_complete(success=False, error_message=error_message))
+                self.thread_pool.start(export_runnable)
 
-                    # 对数据进行排序以符合要求
-                    rows_to_export.sort(key=lambda x: (x[2], x[1], x[0]))
+                # 显示加载提示框
+                self.loading_dialog = QProgressDialog("正在导出...", None, 0, 0, self)
+                self.loading_dialog.setWindowTitle("请稍候")
+                self.loading_dialog.setWindowModality(Qt.WindowModal)
+                self.loading_dialog.setWindowFlag(Qt.WindowCloseButtonHint, False)
+                self.loading_dialog.setCancelButton(None)
+                self.loading_dialog.show()
 
-                    # 创建一个新的 Excel 工作簿
-                    workbook = openpyxl.Workbook()
-
-                    # 创建一个默认的工作表
-                    default_sheet = workbook.active
-                    default_sheet.title = '所有供货商'
-
-                    # 添加列标题
-                    default_sheet.append(column_order)
-
-                    # 将数据填充到默认工作表
-                    for row in rows_to_export:
-                        # 提取按照自定义顺序的列数据
-                        row_data = [row[5], row[0], row[3], row[1], row[2], row[4]]
-                        default_sheet.append(row_data)
-
-                    # 获取不同供货商的数据
-                    suppliers = set(row[2] for row in rows_to_export)
-
-                    # 创建一个工作表来存储每个供货商的数据
-                    for supplier in suppliers:
-                        sheet = workbook.create_sheet(title=supplier)
-
-                        # 添加列标题
-                        sheet.append(column_order)
-
-                        supplier_data = [row for row in rows_to_export if row[2] == supplier]
-                        for row in supplier_data:
-                            # 按照指定顺序提取数据列
-                            data_columns = [row[5], row[0], row[3], row[1], row[2], row[4]]
-                            sheet.append(data_columns)
-
-
-                    # 保存 Excel 文件
-                    workbook.save(selected_file)
-
-                    self.show_message('info', '导出完成', f'已导出数据到 {selected_file}')
-                except Exception as e:
-                    self.show_message('warn', '导出失败', f'导出失败\n\n导出时出现错误: {str(e)}')
+    def on_export_complete(self, success, selected_file=None, error_message=None):
+        # 关闭加载提示框
+        self.loading_dialog.close()
+        if success:
+            self.show_message('info', '导出完成', f'已导出数据到 {selected_file}')
+        else:
+            self.show_message('warn', '导出失败', f'导出失败\n\n导出时出现错误: {error_message}')
 
     def set_all_column_index(self):
         self.image_index=self.get_column_index_by_name('图片')
