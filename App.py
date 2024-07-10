@@ -38,7 +38,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.1.3'
+        self.version = 'V8.1.4'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -54,14 +54,27 @@ class App(QMainWindow):
         self.order_key = 'none'
         self.order_direction = 'ASC'
 
+        self.office_wifi='Viva303'
+        self.downstair_wifi='Viva Viva'
+        self.supply_position='Helen'
+
+        self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
+        if not os.path.exists(self.base_path):
+            message = (
+                    f"访问店面共享失败，无法获取图片和备用IP地址。\n\n"
+                    f"请检查网络连接后重启应用。\n\n"
+                    f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
+                    f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
+                    f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。"
+                    )
+            self.show_message('warn', '警告', message)
+            sys.exit(1)
+
         self.db_manager = None
         self.init_database_connection()
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.initUI()
-        self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
-        if not os.path.exists(self.base_path):
-            self.show_message('warn', '警告', '图片获取失败，不影响库存系统正常使用。\n\n若要查看图片，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络。')
-        
+    
         self.undo_stack = []
         self.redo_stack = []
         self.search_results = []
@@ -98,7 +111,16 @@ class App(QMainWindow):
         self.db_manager = DatabaseManager()
 
         if not self.db_manager.initialized:
-            self.show_message('warn', '错误', '数据库连接失败。\n\n备用IP地址亦无法连接，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络。\n\n如果网络连接一切正常，请运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试。')
+            message = (
+                    f"数据库连接失败。\n\n"
+                    f"备用IP地址亦无法连接，请检查网络连接。\n\n"
+                    f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
+                    f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
+                    f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。\n\n"
+                    f"如果网络连接一切正常，请运行办公室 {self.supply_position} 电脑桌面上的“IP地址更新”后再次尝试。"
+                    )
+
+            self.show_message('warn', '错误', message)
             sys.exit(1)  # 终止程序
 
         self.loading_dialog.close()
@@ -293,7 +315,14 @@ class App(QMainWindow):
         if column==self.image_index:
             self.show_full_size_image(row)
             if not os.path.exists(self.base_path):
-                self.show_message('warn', '错误', '图片显示失败，请检查网络连接后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络。')
+                message = (
+                        f"图片显示失败，请检查网络连接后重启应用。\n\n"
+                        f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
+                        f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
+                        f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。"
+                        )
+
+                self.show_message('warn', '错误', message)
         elif column==self.qty_index:
             self.show_edit_quantity_dialog(row)
         elif column==self.note_index:
@@ -428,28 +457,6 @@ class App(QMainWindow):
             record_loader.signals.records_loaded.connect(self.set_record_data)
             self.record_thread_pool.start(record_loader)
 
-            # Operation buttons column
-            '''
-            edit_button = QPushButton('修改')
-            note_button = QPushButton('备注')
-            record_button = QPushButton('记录')
-
-            edit_button.clicked.connect(lambda _, row=i: self.show_edit_quantity_dialog(row))
-            note_button.clicked.connect(lambda _, row=i: self.show_note_dialog(row))
-            record_button.clicked.connect(lambda _, row=i: self.show_record_dialog(row))
-
-            button_container = QWidget()
-            button_layout = QHBoxLayout(button_container)
-            edit_button.setFixedSize(56, 56)
-            note_button.setFixedSize(56, 56)
-            record_button.setFixedSize(56, 56)
-            button_layout.addWidget(edit_button)
-            button_layout.addWidget(note_button)
-            button_layout.addWidget(record_button)
-            button_layout.setContentsMargins(0, 0, 0, 0)
-            button_container.setLayout(button_layout)
-            self.table_widget.setCellWidget(i, self.action_index, button_container)
-            '''
             self.table_widget.setRowHeight(i, 110)
 
     def on_data_fetch_error(self, error_message):
@@ -921,7 +928,15 @@ class App(QMainWindow):
 
         
     def exit_with_conn_error(self):
-        self.show_message('warn', '错误', '数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络。\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络。\n3. 请确认办公室Harry电脑是否已开机并连接到PEPLINK网络。\n\n如果网络连接一切正常，请运行办公室Harry电脑桌面上的“IP地址更新”后再次尝试。')
+        message = (
+                f"数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n"
+                f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
+                f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
+                f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。\n\n"
+                f"如果网络连接一切正常，请运行办公室 {self.supply_position} 电脑桌面上的“IP地址更新”后再次尝试。"
+                )
+
+        self.show_message('warn', '错误', message)
         sys.exit(1)  # 终止程序
     
     def show_about_dialog(self):
