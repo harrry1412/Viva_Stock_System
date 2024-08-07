@@ -38,7 +38,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.1.4'
+        self.version = 'V8.1.5'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -553,7 +553,7 @@ class App(QMainWindow):
         permission_level=0
         if self.logged == 1:
             permission_level=1            
-        permission=self.db_manager.check_user_permission(self.user, 'add_product')
+        permission=self.db_manager.check_user_permission(self.user, 'edit_note')
         if permission==-1:
             self.exit_with_conn_error()
         if permission:
