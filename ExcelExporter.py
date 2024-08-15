@@ -1,8 +1,8 @@
-# excel_exporter.py
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject
-from openpyxl.drawing.image import Image
 from PIL import Image as PilImage
-import openpyxl
+import xlsxwriter
+import os
+import shutil
 
 class ExportSignals(QObject):
     progress = pyqtSignal(int)
@@ -20,127 +20,119 @@ class ExcelExporter(QRunnable):
 
     def run(self):
         try:
-            # 定义图片目录路径变量
+            # Define the image directory path and temporary folder path variables
             image_directory = "//VIVA303-WORK/Viva店面共享/StockImg/"
+            temp_directory = "temp"
 
-            # 获取要导出的数据（从数据库中获得）
+            # Create the temporary folder if it doesn't exist
+            if not os.path.exists(temp_directory):
+                os.makedirs(temp_directory)
+
+            # Get the data to be exported (retrieved from the database)
             selected_suppliers = self.filtered_suppliers
             rows_to_export = self.db_manager.fetch_rugs()
 
-            # 指定自定义的列顺序
-            column_order = ['图片', '型号', '类型', '数量', '供货商', '备注']
+            # Specify custom column order
+            column_order = ['Image', 'Model', 'Type', 'Quantity', 'Supplier', 'Remarks']
 
-            # 对数据进行排序以符合要求
+            # Sort the data to meet the requirements
             rows_to_export.sort(key=lambda x: (x[2], x[1], x[0]))
 
-            # 创建一个新的 Excel 工作簿
-            workbook = openpyxl.Workbook()
+            # Create a new Excel workbook
+            workbook = xlsxwriter.Workbook(self.selected_file)
+            default_sheet = workbook.add_worksheet('All Suppliers')
 
-            # 创建一个默认的工作表
-            default_sheet = workbook.active
-            default_sheet.title = '所有供货商'
+            # Add column headers
+            default_sheet.write_row(0, 0, column_order)
 
-            # 添加列标题
-            default_sheet.append(column_order)
-
-            # 设置列宽和行高，如果需要包含图片
+            # Set column width and row height for square cells
+            cell_size = 60  # Cell size 60x60 pixels
             if self.include_images:
-                default_sheet.column_dimensions['A'].width = 15
-                default_sheet.column_dimensions['B'].width = 30
-                default_sheet.column_dimensions['F'].width = 30
-                for row_index in range(2, len(rows_to_export) + 2):
-                    default_sheet.row_dimensions[row_index].height = 80
+                default_sheet.set_column('A:A', cell_size / 7.2)  # Excel column width unit is approximately 1/7.2 of a character width
+                for row_idx in range(1, len(rows_to_export) + 1):
+                    default_sheet.set_row(row_idx, cell_size)  # Set row height to 60 pixels
 
-            # 将数据填充到默认工作表
-            for row in rows_to_export:
-                # 提取按照自定义顺序的列数据
-                row_data = [row[5] if not self.include_images else None, row[0], row[3], row[1], row[2], row[4]]
-                default_sheet.append(row_data)
+            # Populate the default worksheet with data
+            for row_idx, row in enumerate(rows_to_export, start=1):
+                row_data = [row[5], row[0], row[3], row[1], row[2], row[4]]
+                default_sheet.write_row(row_idx, 1, row_data[1:])
+
                 if self.include_images:
-                    # 插入图片
                     img_path = f"{image_directory}{row[5]}"
                     try:
                         with PilImage.open(img_path) as img:
-                            # 获取单元格宽高
-                            cell_width = default_sheet.column_dimensions['A'].width * 7.2
-                            cell_height = default_sheet.row_dimensions[default_sheet.max_row].height
-
-                            # 计算图片的缩放比例，保持图片比例并适应单元格
-                            width_ratio = cell_width / img.width
-                            height_ratio = cell_height / img.height
+                            # Calculate scaling ratio to maintain the image's aspect ratio and fit within the 60x60 cell
+                            width_ratio = cell_size / img.width
+                            height_ratio = cell_size / img.height
                             scale_ratio = min(width_ratio, height_ratio)
                             new_width = int(img.width * scale_ratio)
                             new_height = int(img.height * scale_ratio)
                             img = img.resize((new_width, new_height), PilImage.LANCZOS)
-                            
-                            temp_path = f"temp_{row[5]}"
+
+                            # Save the temporary image in the temp folder
+                            temp_path = os.path.join(temp_directory, f"temp_{row[5]}")
                             img.save(temp_path)
-                            excel_img = Image(temp_path)
-                            # 插入图片
-                            img_col = 'A'
-                            img_row = default_sheet.max_row
-                            img_cell = default_sheet.cell(row=img_row, column=1)
-                            img_cell.value = None
-                            default_sheet.add_image(excel_img, f'{img_col}{img_row}')
-                    except Exception:
+
+                            # Insert the image and lock it to the cell
+                            default_sheet.insert_image(row_idx, 0, temp_path, {
+                                'x_scale': 1,
+                                'y_scale': 1,
+                                'x_offset': int((cell_size - new_width) / 2),
+                                'y_offset': int((cell_size - new_height) / 2),
+                                'object_position': 1  # Image fixed to the cell, hidden with the cell
+                            })
+
+                    except Exception as e:
                         pass
 
-            # 获取不同供货商的数据
+            # Create individual worksheets for each supplier
             suppliers = set(row[2] for row in rows_to_export)
-
-            # 创建一个工作表来存储每个供货商的数据
             for supplier in suppliers:
-                sheet = workbook.create_sheet(title=supplier)
+                sheet = workbook.add_worksheet(supplier)
+                sheet.write_row(0, 0, column_order)
 
-                # 添加列标题
-                sheet.append(column_order)
-
-                # 设置列宽和行高，如果需要包含图片
+                # Set column width and row height for square cells
                 if self.include_images:
-                    sheet.column_dimensions['A'].width = 15
-                    sheet.column_dimensions['B'].width = 30
-                    sheet.column_dimensions['F'].width = 30
-                    for row_index in range(2, len(rows_to_export) + 2):
-                        sheet.row_dimensions[row_index].height = 80
+                    sheet.set_column('A:A', cell_size / 7.2)
+                    for row_idx in range(1, len(rows_to_export) + 1):
+                        sheet.set_row(row_idx, cell_size)
 
                 supplier_data = [row for row in rows_to_export if row[2] == supplier]
-                for row in supplier_data:
-                    # 按照指定顺序提取数据列
-                    data_columns = [row[5] if not self.include_images else None, row[0], row[3], row[1], row[2], row[4]]
-                    sheet.append(data_columns)
+                for row_idx, row in enumerate(supplier_data, start=1):
+                    row_data = [row[5], row[0], row[3], row[1], row[2], row[4]]
+                    sheet.write_row(row_idx, 1, row_data[1:])
+
                     if self.include_images:
-                        # 插入图片
                         img_path = f"{image_directory}{row[5]}"
                         try:
                             with PilImage.open(img_path) as img:
-                                # 获取单元格宽高
-                                cell_width = sheet.column_dimensions['A'].width * 7.2
-                                cell_height = sheet.row_dimensions[sheet.max_row].height
-
-                                # 计算图片的缩放比例，保持图片比例并适应单元格
-                                width_ratio = cell_width / img.width
-                                height_ratio = cell_height / img.height
+                                width_ratio = cell_size / img.width
+                                height_ratio = cell_size / img.height
                                 scale_ratio = min(width_ratio, height_ratio)
                                 new_width = int(img.width * scale_ratio)
                                 new_height = int(img.height * scale_ratio)
                                 img = img.resize((new_width, new_height), PilImage.LANCZOS)
-                                
-                                temp_path = f"temp_{row[5]}"
+
+                                temp_path = os.path.join(temp_directory, f"temp_{row[5]}")
                                 img.save(temp_path)
-                                excel_img = Image(temp_path)
-                                # 插入图片
-                                img_col = 'A'
-                                img_row = sheet.max_row
-                                img_cell = sheet.cell(row=img_row, column=1)
-                                img_cell.value = None
-                                sheet.add_image(excel_img, f'{img_col}{img_row}')
-                        except Exception:
+
+                                sheet.insert_image(row_idx, 0, temp_path, {
+                                    'x_scale': 1,
+                                    'y_scale': 1,
+                                    'x_offset': int((cell_size - new_width) / 2),
+                                    'y_offset': int((cell_size - new_height) / 2),
+                                    'object_position': 1
+                                })
+
+                        except Exception as e:
                             pass
 
-            # 保存 Excel 文件
-            workbook.save(self.selected_file)
+            workbook.close()
 
-            # 发送完成信号
+            # Delete the temporary files and folder
+            shutil.rmtree(temp_directory)
+
+            # Emit the finished signal
             self.signals.finished.emit()
         except Exception as e:
             self.signals.error.emit(str(e))
