@@ -171,11 +171,14 @@ class EditQuantityDialog(QDialog):
 
         # 确保记录不为空
         if record.strip():  # 检查 record 是否为空或只包含空白
-            # 所有检查通过后保存更改或同步到数据库
-            if(self.date_input.choseDate==1):
-                self.accept()
+            if not ('新增产品' in record):
+                # 所有检查通过后保存更改或同步到数据库
+                if(self.date_input.choseDate==1):
+                    self.accept()
+                else:
+                    QMessageBox.warning(self, '警告', '请选择进出货日期')
             else:
-                QMessageBox.warning(self, '警告', '请选择进出货日期')
+                QMessageBox.warning(self, '警告', '记录不能包含 “新增产品”')
         else:
             QMessageBox.warning(self, '警告', '记录不能为空')
 

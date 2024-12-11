@@ -82,7 +82,11 @@ class RecordDialog(QDialog):
     
     def delete_record(self, record_row):
         editdate = self.table.item(record_row, 4).text()
-        success = self.parent().delete_record(self.rug_id, editdate, self.rug_row)
+        isCreateRecord=0
+        print(self.table.item(record_row, 3).text())
+        if ('新增产品' in self.table.item(record_row, 3).text()):
+            isCreateRecord=1
+        success = self.parent().delete_record(self.rug_id, editdate, self.rug_row, isCreateRecord)
         
         if success:
             self.table.removeRow(record_row)

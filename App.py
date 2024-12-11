@@ -648,6 +648,7 @@ class App(QMainWindow):
                 if success:
                     # insert into database success, copy image now
                     add_product_dialog.copy_images_to_folder()
+                    self.db_manager.insert_record(product_data[0], product_data[7], '新增产品', 0, product_data[1], product_data[6], datetime.datetime.now())
                 else:
                     self.exit_with_conn_error()
                 self.refresh_window()
@@ -673,7 +674,7 @@ class App(QMainWindow):
         record_dialog = RecordDialog(self, rug_id, records, row)
         record_dialog.exec_()
 
-    def delete_record(self, rug_id, editdate, rug_row):
+    def delete_record(self, rug_id, editdate, rug_row, isCreateRecord):
         if self.logged != 1:
             self.show_message('warn', '警告', '您未登录，无法删除记录。')
             return
@@ -685,6 +686,9 @@ class App(QMainWindow):
             return
         if not self.is_latest():
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
+            return
+        if (isCreateRecord == 1):
+            self.show_message('warn', '警告', '此记录为产品创始记录，无法删除。')
             return
         reply = QMessageBox.question(self, '确认删除', '你确定要删除这条记录吗？',
                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
