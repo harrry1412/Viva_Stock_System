@@ -339,6 +339,33 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def update_record_ids(self, old_id, new_id):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            update_query = """
+            UPDATE record
+            SET id = %s
+            WHERE id = %s AND deleted = 0
+            """
+            # 执行更新操作
+            cursor.execute(update_query, (new_id, old_id))
+            conn.commit()
+            # 返回更新的行数，可以提供反馈信息
+            rows_updated = cursor.rowcount
+            print(f"{rows_updated} records updated.")
+            return True
+        except Exception as e:
+            print(f"An error occurred while updating record ids: {e}")
+            if conn:
+                conn.rollback()  # 事务回滚
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+
     def update_note(self, note, rug_id):
         conn = None
         try:

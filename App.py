@@ -38,7 +38,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.3.6'
+        self.version = 'V8.4.6'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -615,10 +615,11 @@ class App(QMainWindow):
                 if not success:
                     self.exit_with_conn_error()
                 if success and self.user != 'admin':
-                    # insert into database success, copy image now
+                    # insert into database success, edit record id and copy image now
+                    self.db_manager.update_record_ids(rug_id, new_info['model'])
                     edit_product_dialog.copy_images_to_folder()
                     date = datetime.datetime.now()
-                    success=self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
+                    self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
                 self.refresh_window()
 
     def update_product_to_database(self, old_rug_id, new_info):
