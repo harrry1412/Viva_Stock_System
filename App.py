@@ -298,17 +298,14 @@ class App(QMainWindow):
     def make_full_image_path(self, image_file_name):
         return self.base_path + image_file_name if image_file_name else None
 
-    def get_suppliers(self):
-        if self.supplier_list is None:
-            self.supplier_list = self.db_manager.fetch_supplier()
-            self.supplier_list.sort(key=lambda x: lazy_pinyin(x))
-        return self.supplier_list
+    def update_suppliers(self):
+        self.supplier_list = self.db_manager.fetch_supplier()
+        self.supplier_list.sort(key=lambda x: lazy_pinyin(x))
+        #return self.supplier_list
 
-    def get_categories(self):
-        if self.category_list is None:
-            self.category_list = self.db_manager.fetch_category()
-            self.category_list.sort(key=lambda x: lazy_pinyin(x))
-        return self.category_list
+    def update_categories(self):
+        self.category_list = self.db_manager.fetch_category()
+        self.category_list.sort(key=lambda x: lazy_pinyin(x))
 
     def handle_cell_clicked(self, row, column):
         self.set_all_column_index
@@ -379,6 +376,9 @@ class App(QMainWindow):
 
 
     def populate_table(self):
+        # 更新Suppliers category列表
+        self.update_suppliers()
+        self.update_categories()
         # 将滚动条移动到最上面
         self.table_widget.verticalScrollBar().setValue(0)
 

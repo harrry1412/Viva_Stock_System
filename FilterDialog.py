@@ -103,7 +103,7 @@ class FilterDialog(QDialog):
         # 创建供货商滚动区域
         self.supplierScrollWidget = QWidget()
         self.supplierScrollLayout = QVBoxLayout(self.supplierScrollWidget)
-        suppliers = self.parent().get_suppliers()
+        suppliers = self.parent().supplier_list
         for supplier in suppliers:
             display_text = "空白" if supplier is None or not supplier.strip() else supplier
             checkbox = QCheckBox(display_text)
@@ -118,7 +118,7 @@ class FilterDialog(QDialog):
         # 创建产品类型滚动区域
         self.categoryScrollWidget = QWidget()
         self.categoryScrollLayout = QVBoxLayout(self.categoryScrollWidget)
-        categories = self.parent().get_categories()
+        categories = self.parent().category_list
         #categories=['Sofa', 'Lamp', 'Rugs', 'Chair']
         for category in categories:
             display_text = "空白" if category is None or not category.strip() else category

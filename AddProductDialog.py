@@ -47,12 +47,12 @@ class AddProductDialog(QDialog):
         self.category_input.addItem("")
 
         # 填充供货商组合框选项
-        suppliers = self.parent().get_suppliers() 
+        suppliers = self.parent().supplier_list
         for supplier in suppliers:
             self.supplier_input.addItem(supplier)
 
         # 填充组合框选项
-        categories = self.parent().get_categories()
+        categories = self.parent().category_list
         for category in categories:
             self.category_input.addItem(category)
 
