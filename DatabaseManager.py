@@ -306,6 +306,37 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def supplier_exists(self, sup):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+
+            # 先查询是否存在完全匹配的 supplier（大小写敏感）
+            exact_match_query = "SELECT supplier FROM rug WHERE BINARY supplier = %s AND deleted = 0 LIMIT 1"
+            cursor.execute(exact_match_query, (sup,))
+            exact_match = cursor.fetchone()
+
+            if exact_match:
+                return True  # 大小写完全匹配，返回 True
+
+            # 如果没有完全匹配，再查询是否有大小写不同但忽略大小写相同的 supplier
+            case_insensitive_query = "SELECT supplier FROM rug WHERE LOWER(supplier) = LOWER(%s) AND deleted = 0 LIMIT 1"
+            cursor.execute(case_insensitive_query, (sup,))
+            case_insensitive_match = cursor.fetchone()
+
+            if case_insensitive_match:
+                return case_insensitive_match[0]  # 返回数据库中的原始 supplier
+
+            return False  # 没有匹配项
+        except Exception as e:
+            print(f"Error checking Supplier existence: {e}")
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+
 
     def fetch_records_for_rug(self, id):
         conn = None

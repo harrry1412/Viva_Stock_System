@@ -3,6 +3,7 @@ import os
 from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QApplication
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QToolButton, QHBoxLayout
 
 class AboutDialog(QDialog):
     def __init__(self, parent=None, version="1.0.0"):

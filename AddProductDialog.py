@@ -161,6 +161,13 @@ class AddProductDialog(QDialog):
             QMessageBox.warning(self, '警告', '供货商不能为空')
             return None
         
+        # 检查供货商是否已存在，若存在，将大小写统一
+        supplier_database = self.parent().db_manager.supplier_exists(supplier)
+        if isinstance(supplier_database, str):
+            supplier = supplier_database
+            QMessageBox.warning(self, '警告', f'该供货商已存在，已统一大小写为 "{supplier}"')
+            print(f'该供货商已存在，已统一大小写为 "{supplier}"')
+        
         # 检查类别是否为空
         if not category:
             QMessageBox.warning(self, '警告', '产品类别不能为空')
