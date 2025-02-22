@@ -38,7 +38,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.5.7'
+        self.version = 'V8.5.8'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -306,6 +306,12 @@ class App(QMainWindow):
     def update_categories(self):
         self.category_list = self.db_manager.fetch_category()
         self.category_list.sort(key=lambda x: lazy_pinyin(x))
+
+    def get_suppliers(self):
+        return self.supplier_list
+    
+    def get_categories(self):
+        return self.category_list
 
     def handle_cell_clicked(self, row, column):
         self.set_all_column_index
