@@ -38,7 +38,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V8.5.8'
+        self.version = 'V9.5.8'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -73,6 +73,7 @@ class App(QMainWindow):
         self.db_manager = None
         self.init_database_connection()
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
+        self.check_version()
         self.initUI()
     
         self.undo_stack = []
@@ -124,6 +125,25 @@ class App(QMainWindow):
             sys.exit(1)  # 终止程序
 
         self.loading_dialog.close()
+
+    def check_version(self):
+        version=self.version[1:]
+        parts=version.split('.')
+        v1, v2, v3=int(parts[0]), int(parts[1]), int(parts[2])
+
+        dict=self.db_manager.fetch_version()
+        version_now_str=dict['user']
+        version_now=version_now_str[1:]
+        parts=version_now.split('.')
+        vn1, vn2, vn3=int(parts[0]), int(parts[1]), int(parts[2])
+
+        if (vn1>v1 or vn2>v2):
+            # 大版本落后
+            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本: {version_now_str}。此版本包含重要更新，请联系开发者更新后继续使用，或暂时使用其它设备上的本应用。')
+            sys.exit(1)
+        elif (vn3>v3):
+            # 小版本落后
+            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本: {version_now_str}。此版本包含轻量级更新，建议联系开发者更新后继续使用，或暂时使用其它设备上的本应用。')
 
     def initUI(self):
         self.setWindowTitle(self.title)
