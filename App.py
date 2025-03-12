@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QThreadPool
+import json
 import sys
 import os
 import mysql.connector
@@ -54,19 +55,28 @@ class App(QMainWindow):
         self.order_key = 'none'
         self.order_direction = 'ASC'
 
-        self.office_wifi='Viva303'
-        self.downstair_wifi='Viva Viva'
-        self.supply_position='Helen'
+        # load config file
+        config=self.load_config()
 
-        self.base_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\'
+        self.office_wifi = config['network_settings']['office_wifi']
+        self.downstair_wifi = config['network_settings']['downstair_wifi']
+        self.supply_position = config['network_settings']['supply_position']
+
+        self.base_path = config['network_settings']['base_path']
         if not os.path.exists(self.base_path):
-            message = (
-                    f"访问店面共享失败，无法获取图片和备用IP地址。\n\n"
-                    f"请检查网络连接后重启应用。\n\n"
-                    f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
-                    f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
-                    f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。"
-                    )
+            # 使用配置文件中的消息模板
+            message_template = config['error_messages']['network_failure']
+            # 准备用于填充模板的字典，包括所有可能的键
+            replacements = {
+                "office_wifi": self.office_wifi,
+                "downstair_wifi": self.downstair_wifi,
+                "supply_position": self.supply_position
+            }
+            
+            # 使用字典推导来格式化字符串，对每个键调用.get()以提供默认值
+            # 为所有可能的字段提供默认值
+            message = message_template.format(**{key: replacements.get(key, '未指定') for key in replacements})
+            
             self.show_message('warn', '警告', message)
             sys.exit(1)
 
@@ -97,6 +107,20 @@ class App(QMainWindow):
         self.action_index = 0
         self.refresh_time = datetime.datetime.now()
         self.logged = 0
+
+    def load_config(self):
+        print("当前工作目录:", os.getcwd())
+        # 检测是否运行在一个打包后的环境
+        if getattr(sys, 'frozen', False):
+            # 打包后的情况，配置文件路径是exe文件旁边
+            b_path = sys._MEIPASS
+        else:
+            # 从源代码运行的情况，配置文件在当前文件的同级目录
+            b_path = os.path.dirname(os.path.abspath(__file__))
+        
+        config_path = os.path.join(b_path, 'vivaStock_config.json')
+        with open('vivaStock_config.json', 'r', encoding='utf-8') as file:
+            return json.load(file)
 
     def init_database_connection(self):
         self.loading_dialog = LoadingDialog()
@@ -139,11 +163,11 @@ class App(QMainWindow):
 
         if (vn1>v1 or vn2>v2):
             # 大版本落后
-            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本: {version_now_str}。此版本包含重要更新，请联系开发者更新后继续使用，或暂时使用其它设备上的本应用。')
+            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本包含重要更新，请联系开发者更新后继续使用，或暂时使用其它设备上已更新的本应用。')
             sys.exit(1)
         elif (vn3>v3):
             # 小版本落后
-            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本: {version_now_str}。此版本包含轻量级更新，建议联系开发者更新后继续使用，或暂时使用其它设备上的本应用。')
+            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本包含轻量级更新，建议联系开发者更新后继续使用，或暂时使用其它设备上已更新的本应用。')
 
     def initUI(self):
         self.setWindowTitle(self.title)
