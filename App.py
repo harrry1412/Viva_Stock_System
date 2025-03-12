@@ -113,13 +113,13 @@ class App(QMainWindow):
         # 检测是否运行在一个打包后的环境
         if getattr(sys, 'frozen', False):
             # 打包后的情况，配置文件路径是exe文件旁边
-            b_path = sys._MEIPASS
+            base_path = sys._MEIPASS
         else:
             # 从源代码运行的情况，配置文件在当前文件的同级目录
-            b_path = os.path.dirname(os.path.abspath(__file__))
+            base_path = os.path.dirname(os.path.abspath(__file__))
         
-        config_path = os.path.join(b_path, 'vivaStock_config.json')
-        with open('vivaStock_config.json', 'r', encoding='utf-8') as file:
+        config_path = os.path.join(base_path, 'vivaStock_config.json')
+        with open(config_path, 'r', encoding='utf-8') as file:
             return json.load(file)
 
     def init_database_connection(self):
