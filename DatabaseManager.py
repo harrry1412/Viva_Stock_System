@@ -11,10 +11,20 @@ from PyQt5.QtCore import Qt
 
 class DatabaseManager:
     def __init__(self):
+        self.initialized = False
+        
+        # 检测是否运行在一个打包后的环境
+        if getattr(sys, 'frozen', False):
+            # 打包后的情况，配置文件路径是exe文件旁边
+            base_path = sys._MEIPASS
+        else:
+            # 从源代码运行的情况，配置文件在当前文件的同级目录
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        
         # 默认配置文件路径
-        config_path = 'mysql.txt'
+        config_path = os.path.join(base_path, 'mysql.txt')
+        
         # 尝试连接
-        self.initialized=False
         if not self.try_connect(config_path):
             # 如果第一次连接失败，尝试备用路径
             backup_config_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\mysql.txt'
