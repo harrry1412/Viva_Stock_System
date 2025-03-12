@@ -35,7 +35,6 @@ class DatabaseManager:
     def try_connect(self, config_path):
         if not os.path.exists(config_path):
             print(f"Configuration file {config_path} not found.")
-            self.exit_with_conn_error()
             return False
 
         config = configparser.ConfigParser()
@@ -710,10 +709,6 @@ class DatabaseManager:
         # 显示消息框
         message_box.exec_()
 
-        
-    def exit_with_conn_error(self):
-        self.show_message('warn', '错误', '数据库连接失败。\n\n获取备用IP地址失败，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接PEPLINK网络\n2. 楼下前台用户请确认电脑已连接VIVA LIFESTYLE网络\n3. 请确认办公室Helen电脑是否已开机并连接到PEPLINK网络')
-        sys.exit(1)  # 终止程序
 
 
 
