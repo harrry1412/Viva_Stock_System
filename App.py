@@ -133,7 +133,7 @@ class App(QMainWindow):
         while time.time() - start_time < 5:  # 模拟数据库连接的耗时操作
             QApplication.processEvents()  # 处理事件循环，保持 UI 响应
 
-        self.db_manager = DatabaseManager(self.config)
+        self.db_manager = DatabaseManager()
 
         if not self.db_manager.initialized:
             # 使用配置文件中的消息模板
