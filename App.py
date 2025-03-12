@@ -39,7 +39,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V9.5.8'
+        self.version = 'V9.6.8'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -56,16 +56,16 @@ class App(QMainWindow):
         self.order_direction = 'ASC'
 
         # load config file
-        config=self.load_config()
+        self.config=self.load_config()
 
-        self.office_wifi = config['network_settings']['office_wifi']
-        self.downstair_wifi = config['network_settings']['downstair_wifi']
-        self.supply_position = config['network_settings']['supply_position']
+        self.office_wifi = self.config['network_settings']['office_wifi']
+        self.downstair_wifi = self.config['network_settings']['downstair_wifi']
+        self.supply_position = self.config['network_settings']['supply_position']
 
-        self.base_path = config['network_settings']['base_path']
+        self.base_path = self.config['network_settings']['base_path']
         if not os.path.exists(self.base_path):
             # 使用配置文件中的消息模板
-            message_template = config['error_messages']['network_failure']
+            message_template = self.config['error_messages']['network_failure']
             # 准备用于填充模板的字典，包括所有可能的键
             replacements = {
                 "office_wifi": self.office_wifi,
@@ -136,14 +136,15 @@ class App(QMainWindow):
         self.db_manager = DatabaseManager()
 
         if not self.db_manager.initialized:
-            message = (
-                    f"数据库连接失败。\n\n"
-                    f"备用IP地址亦无法连接，请检查网络连接。\n\n"
-                    f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
-                    f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
-                    f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。\n\n"
-                    f"如果网络连接一切正常，请运行办公室 {self.supply_position} 电脑桌面上的“IP地址更新”后再次尝试。"
-                    )
+            # 使用配置文件中的消息模板
+            message_template = self.config['error_messages']['database_failure']
+            # 准备用于填充模板的字典，包括所有可能的键
+            replacements = {
+                "office_wifi": self.office_wifi,
+                "downstair_wifi": self.downstair_wifi,
+                "supply_position": self.supply_position
+            }
+            message = message_template.format(**{key: replacements.get(key, '未指定') for key in replacements})
 
             self.show_message('warn', '错误', message)
             sys.exit(1)  # 终止程序
@@ -362,12 +363,15 @@ class App(QMainWindow):
         if column==self.image_index:
             self.show_full_size_image(row)
             if not os.path.exists(self.base_path):
-                message = (
-                        f"图片显示失败，请检查网络连接后重启应用。\n\n"
-                        f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
-                        f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
-                        f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。"
-                        )
+                # 使用配置文件中的消息模板
+                message_template = self.config['error_messages']['image_failure']
+                # 准备用于填充模板的字典，包括所有可能的键
+                replacements = {
+                    "office_wifi": self.office_wifi,
+                    "downstair_wifi": self.downstair_wifi,
+                    "supply_position": self.supply_position
+                }
+                message = message_template.format(**{key: replacements.get(key, '未指定') for key in replacements})
 
                 self.show_message('warn', '错误', message)
         elif column==self.qty_index:
@@ -983,13 +987,15 @@ class App(QMainWindow):
 
         
     def exit_with_conn_error(self):
-        message = (
-                f"数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n"
-                f"1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n"
-                f"2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n"
-                f"3. 请确认办公室 {self.supply_position} 电脑是否已开机并连接到 {self.office_wifi} 网络。\n\n"
-                f"如果网络连接一切正常，请运行办公室 {self.supply_position} 电脑桌面上的“IP地址更新”后再次尝试。"
-                )
+        # 使用配置文件中的消息模板
+        message_template = self.config['error_messages']['dataFetch_failure']
+        # 准备用于填充模板的字典，包括所有可能的键
+        replacements = {
+            "office_wifi": self.office_wifi,
+            "downstair_wifi": self.downstair_wifi,
+            "supply_position": self.supply_position
+        }
+        message = message_template.format(**{key: replacements.get(key, '未指定') for key in replacements})
 
         self.show_message('warn', '错误', message)
         sys.exit(1)  # 终止程序
