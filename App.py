@@ -200,6 +200,7 @@ class App(QMainWindow):
         self.refresh_button = QPushButton('刷新')
         self.add_button = QPushButton('添加')
         self.export_button = QPushButton('导出')
+        self.manage_button = QPushButton('管理')
         self.about_button = QPushButton('关于')
         self.login_button = QPushButton('登录')
 
@@ -218,6 +219,7 @@ class App(QMainWindow):
         self.refresh_button.setFont(font)
         self.add_button.setFont(font)
         self.export_button.setFont(font)
+        self.manage_button.setFont(font)
         self.about_button.setFont(font)
         self.login_button.setFont(font)
 
@@ -231,6 +233,8 @@ class App(QMainWindow):
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
+        if self.show_manage_bool():
+            search_layout.addWidget(self.manage_button)
         if self.show_about_bool():
             search_layout.addWidget(self.about_button)
         search_layout.addWidget(self.login_button)
@@ -270,6 +274,8 @@ class App(QMainWindow):
         self.login_button.clicked.connect(self.click_login)
         self.order_button.clicked.connect(self.show_order_dialog)
         self.refresh_button.clicked.connect(self.refresh_window)
+        self.manage_button.clicked.connect(self.show_manage_dialog)
+
 
         # 获取表的水平表头
         header = self.table_widget.horizontalHeader()
@@ -427,6 +433,9 @@ class App(QMainWindow):
             return True
         else:
             return False
+        
+    def show_manage_bool(self):
+        return True
 
 
     def populate_table(self):
@@ -548,7 +557,8 @@ class App(QMainWindow):
                 return col
         return -1
 
-
+    def show_manage_dialog(self):
+        print('MMMMMMMMMMMMMMMMMMMMMMMMANAGE DDDDDDDDDDDDDDDDDDDIALOG')
 
     def show_edit_quantity_dialog(self, row):
         if self.logged != 1:
