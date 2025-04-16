@@ -85,6 +85,21 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def fetch_users(self):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            cursor.execute("SELECT name, status FROM user")
+            users = [{"name": row[0], "status": row[1]} for row in cursor.fetchall()]
+            return users
+        except Exception as e:
+            print(f"Error fetching users: {e}")
+            return []
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
     def fetch_category(self):
         conn = None
         try:

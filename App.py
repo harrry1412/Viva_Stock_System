@@ -29,6 +29,8 @@ from RecordLoader import RecordLoader
 from ImageLable import ImageLabel
 from AboutDialog import AboutDialog
 from LoadingDialog import LoadingDialog
+from ManageDialog import ManageDialog
+from TestDialog import TestDialog
 from ClickableLineEdit import ClickableLineEdit
 import datetime
 from EditProductDialog import EditProductDialog
@@ -358,11 +360,18 @@ class App(QMainWindow):
         self.category_list = self.db_manager.fetch_category()
         self.category_list.sort(key=lambda x: lazy_pinyin(x))
 
+    def update_user_list(self):
+        self.user_list = self.db_manager.fetch_users()
+        self.user_list.sort(key=lambda x: x["name"].lower())
+
     def get_suppliers(self):
         return self.supplier_list
     
     def get_categories(self):
         return self.category_list
+    
+    def get_user_list(self):
+        return self.user_list
 
     def handle_cell_clicked(self, row, column):
         self.set_all_column_index
@@ -442,6 +451,7 @@ class App(QMainWindow):
         # 更新Suppliers category列表
         self.update_suppliers()
         self.update_categories()
+        self.update_user_list()
         # 将滚动条移动到最上面
         self.table_widget.verticalScrollBar().setValue(0)
 
@@ -556,9 +566,6 @@ class App(QMainWindow):
             if self.table_widget.horizontalHeaderItem(col).text() == column_name:
                 return col
         return -1
-
-    def show_manage_dialog(self):
-        print('MMMMMMMMMMMMMMMMMMMMMMMMANAGE DDDDDDDDDDDDDDDDDDDIALOG')
 
     def show_edit_quantity_dialog(self, row):
         if self.logged != 1:
@@ -851,6 +858,9 @@ class App(QMainWindow):
         # 显示当前结果
         self.show_current_result()
 
+    def show_manage_dialog(self):
+        dialog = ManageDialog(self, self.get_user_list())
+        dialog.exec_()
 
     def show_filter_dialog(self):
         filter_dialog = FilterDialog(self)
