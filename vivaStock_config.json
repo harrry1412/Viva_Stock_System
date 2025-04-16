@@ -1,0 +1,14 @@
+{
+    "network_settings": {
+        "office_wifi": "Viva303",
+        "downstair_wifi": "Viva Viva",
+        "supply_position": "Helen",
+        "base_path": "\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\"
+    },
+    "error_messages": {
+        "network_failure": "访问店面共享失败，无法获取图片和备用IP地址。\n\n请执行以下检查后重试。\n\n1. 楼上办公室用户请确认电脑已连接到 {office_wifi} 网络。\n2. 楼下前台用户请确认电脑已连接到 {downstair_wifi} 网络。\n3. 请确认办公室 {supply_position} 电脑和 Harry 电脑是否已开机并连接到 {office_wifi} 网络。",
+		"database_failure": "数据库连接失败。\n\n备用IP地址亦无法连接，请执行以下检查后重试。\n\n1. 楼上办公室用户请确认电脑已连接到 {office_wifi} 网络。\n2. 楼下前台用户请确认电脑已连接到 {downstair_wifi} 网络。\n3. 请确认办公室 {supply_position} 电脑和 Harry 电脑是否已开机并连接到 {office_wifi} 网络。\n\n如果网络连接一切正常，请运行办公室 Harry 电脑桌面上的“IP地址更新”后再次尝试。",
+		"image_failure": "图片显示失败，执行以下检查后重启应用。\n\n1. 楼上办公室用户请确认电脑已连接到 {office_wifi} 网络。\n2. 楼下前台用户请确认电脑已连接到 {downstair_wifi} 网络。\n3. 请确认办公室 {supply_position} 电脑和 Harry 电脑是否已开机并连接到 {office_wifi} 网络。",
+		"dataFetch_failure": "数据更新/获取失败，数据库连接丢失，请检查网络连接。\n\n1. 楼上办公室用户请确认电脑已连接到 {self.office_wifi} 网络。\n2. 楼下前台用户请确认电脑已连接到 {self.downstair_wifi} 网络。\n3. 请确认办公室 {supply_position} 电脑和 Harry 电脑是否已开机并连接到 {office_wifi} 网络。\n\n如果网络连接一切正常，请运行办公室 {self.supply_position} 电脑桌面上的“IP地址更新”后再次尝试。"
+    }
+}
