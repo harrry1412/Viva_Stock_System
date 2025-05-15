@@ -859,7 +859,10 @@ class App(QMainWindow):
         self.show_current_result()
 
     def show_manage_dialog(self):
-        dialog = ManageDialog(self, self.get_user_list())
+        if not self.is_latest():
+            self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
+            return
+        dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
         dialog.exec_()
 
     def show_filter_dialog(self):

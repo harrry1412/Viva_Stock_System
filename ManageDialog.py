@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt
 import sys
 
 class ManageDialog(QDialog):
-    def __init__(self, parent=None, user_list=None):
+    def __init__(self, parent=None, user_list=None, db_manager=None):
         super().__init__(parent)
         self.setWindowTitle('管理权限设置')
 
@@ -19,7 +19,7 @@ class ManageDialog(QDialog):
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.resize(700, 550)
 
-        # ✅ 确保用上传入的 user_list
+        self.db_manager=db_manager
         self.user_list = user_list if user_list else []
         self.user_dict = {u['name']: str(u['status']) for u in self.user_list}  # status统一为字符串
 
@@ -67,16 +67,20 @@ class ManageDialog(QDialog):
         self.permission_scroll_widget = QWidget()
         self.permission_scroll_layout = QVBoxLayout(self.permission_scroll_widget)
 
-        self.permissions = [
-            "修改产品", "添加产品", "删除产品", "导出数据", "查看日志",
-            "管理用户", "上传图片", "库存调整", "价格管理"
-        ]
+        self.permission_mapping = {
+            "edit_product": "修改产品",
+            "add_product": "添加新品",
+            "delete_record": "删除记录",
+            "edit_note": "修改备注",
+            "edit_qty": "修改数量"
+        }
 
-        self.permission_checkboxes = []
-        for perm in self.permissions:
-            checkbox = QCheckBox(perm)
+        # 构造复选框
+        self.permission_checkboxes = {}
+        for key, label in self.permission_mapping.items():
+            checkbox = QCheckBox(label)
             checkbox.setFont(font)
-            self.permission_checkboxes.append(checkbox)
+            self.permission_checkboxes[key] = checkbox
             self.permission_scroll_layout.addWidget(checkbox)
 
         self.permission_scroll_area = QScrollArea()
@@ -111,25 +115,52 @@ class ManageDialog(QDialog):
         self.update_user_status(username)
 
     def update_user_status(self, username):
+        # 设置激活/禁用状态（仍使用 self.user_dict 或你传入的 user_list）
         status = self.user_dict.get(username, "1")
-        print(f"[Debug] 当前选中用户: {username}, 状态: {status}")
-
-        # 先清除状态再设定，确保 UI 正确刷新
         self.active_radio.setAutoExclusive(False)
         self.disabled_radio.setAutoExclusive(False)
         self.active_radio.setChecked(False)
         self.disabled_radio.setChecked(False)
         self.active_radio.setAutoExclusive(True)
         self.disabled_radio.setAutoExclusive(True)
-
         if status == "1":
             self.active_radio.setChecked(True)
         else:
             self.disabled_radio.setChecked(True)
 
+        # 清除所有权限勾选
+        for cb in self.permission_checkboxes.values():
+            cb.setChecked(False)
+
+        permission_status =self.db_manager.get_permissions_by_user(username)
+
+        for key, checkbox in self.permission_checkboxes.items():
+            if permission_status.get(key, 0) == 1:
+                checkbox.setChecked(True)
+
     def save_permissions(self):
         selected_user = self.user_combo.currentText()
-        selected_perms = [cb.text() for cb in self.permission_checkboxes if cb.isChecked()]
         status = "1" if self.active_radio.isChecked() else "0"
-        print(f"[保存] 用户: {selected_user}, 状态: {status}, 权限: {selected_perms}")
+
+        # 获取权限字典：{permission_key: 1 or 0}
+        selected_perms = {
+            key: 1 if checkbox.isChecked() else 0
+            for key, checkbox in self.permission_checkboxes.items()
+        }
+
+        # 批量更新权限
+        success_perm = self.db_manager.update_user_permissions(selected_user, selected_perms)
+
+        # 更新用户状态
+        success_status = self.db_manager.update_user_status(selected_user, status)
+
+        if success_perm and success_status:
+            print(f"[保存成功] 用户: {selected_user}, 状态: {status}, 权限: {selected_perms}")
+        else:
+            print(f"[保存失败] 用户: {selected_user}。请检查数据库连接或写入问题。")
+
         self.close()
+        self.parent().refresh_window()
+
+
+

@@ -173,7 +173,6 @@ class DatabaseManager:
         finally:
             if conn and conn.is_connected():
                 conn.close()
-
     
     def fetch_userPwd_status(self, username):
         conn = None
@@ -204,6 +203,7 @@ class DatabaseManager:
             update_query = "UPDATE rug SET qty = %s WHERE id = %s and deleted=0"
             cursor.execute(update_query, (new_quantity, rug_id))
             conn.commit()
+            self.update_last_modified_time('UNKNOWN')
             return True
         except Exception as e:
             print(f"更新rug数量时出错: {e}")
@@ -225,7 +225,6 @@ class DatabaseManager:
             """
             cursor.execute(insert_query, (record_id, user, content, bef, aft, date, edit_date))
             conn.commit()
-            # 更新最后修改时间
             self.update_last_modified_time(user)
             return True
         except Exception as e:
@@ -407,6 +406,7 @@ class DatabaseManager:
             # 执行更新操作
             cursor.execute(update_query, (new_id, old_id))
             conn.commit()
+            self.update_last_modified_time('UNKNOWN')
             # 返回更新的行数，可以提供反馈信息
             rows_updated = cursor.rowcount
             print(f"{rows_updated} records updated.")
@@ -429,6 +429,7 @@ class DatabaseManager:
             update_query = "UPDATE rug SET note = %s WHERE id = %s and deleted=0"
             cursor.execute(update_query, (note, rug_id))
             conn.commit()
+            self.update_last_modified_time('UNKNOWN')
             return True
         except Exception as e:
             print(f"An error occurred while updating the note: {e}")
@@ -459,6 +460,7 @@ class DatabaseManager:
                 old_model_id
             ))
             conn.commit()
+            self.update_last_modified_time('UNKNOWN')
             return True
         except mysql.connector.Error as err:
             print(f"Error updating rug: {err}")
@@ -494,6 +496,83 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def get_permissions_by_user(self, username):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor(dictionary=True)  # 返回字典格式
+
+            query = """
+                SELECT permission, stat 
+                FROM user_permission 
+                WHERE usr = %s
+            """
+            cursor.execute(query, (username,))
+            rows = cursor.fetchall()
+
+            # 构建权限字典，确保类型是 int
+            permission_dict = {row['permission']: int(row['stat']) for row in rows}
+            return permission_dict
+
+        except Exception as e:
+            print(f"查询用户权限时出错: {e}")
+            return {}
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def update_user_status(self, username, status):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+
+            update_query = """
+            UPDATE user
+            SET status = %s
+            WHERE name = %s
+            """
+            cursor.execute(update_query, (status, username))
+            conn.commit()
+            self.update_last_modified_time('ADMIN')
+            return True
+        except Exception as e:
+            print(f"更新用户状态时出错: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def update_user_permissions(self, username, permission_dict):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+
+            update_query = """
+            UPDATE user_permission
+            SET stat = %s
+            WHERE usr = %s AND permission = %s
+            """
+
+            for permission, stat in permission_dict.items():
+                cursor.execute(update_query, (stat, username, permission))
+
+            conn.commit()
+            self.update_last_modified_time('ADMIN')
+            return True
+
+        except Exception as e:
+            print(f"批量更新用户权限时出错: {e}")
+            if conn:
+                conn.rollback()
+            return False
+
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
 
 
     def delete_record(self, id, user, date, now):
@@ -595,32 +674,6 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()  # 确保在最后关闭数据库连接
 
-
-
-    def update_last_modified_time(self, user):
-        conn = None
-        try:
-            conn = self.connect()
-            cursor = conn.cursor()
-            # 获取当前时间
-            current_time = datetime.datetime.now()
-            # 准备更新time_log表的SQL语句
-            update_query = """
-            UPDATE time_log
-            SET tim = %s, usr=%s
-            WHERE title = 'last_modify';
-            """
-            # 执行SQL语句
-            cursor.execute(update_query, (current_time, user))
-            conn.commit()
-        except Exception as e:
-            print(f"An error occurred while updating the last modified time: {e}")
-            if conn:
-                conn.rollback()
-        finally:
-            if conn and conn.is_connected():
-                conn.close()
-
     def fetch_last_modified(self):
         conn = None
         try:
@@ -692,6 +745,30 @@ class DatabaseManager:
         except Exception as e:
             print(f"An error occurred while fetching the last modified time: {e}")
             return {}
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def update_last_modified_time(self, user):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            # 获取当前时间
+            current_time = datetime.datetime.now()
+            # 准备更新time_log表的SQL语句
+            update_query = """
+            UPDATE time_log
+            SET tim = %s, usr=%s
+            WHERE title = 'last_modify';
+            """
+            # 执行SQL语句
+            cursor.execute(update_query, (current_time, user))
+            conn.commit()
+        except Exception as e:
+            print(f"An error occurred while updating the last modified time: {e}")
+            if conn:
+                conn.rollback()
         finally:
             if conn and conn.is_connected():
                 conn.close()
