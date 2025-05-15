@@ -72,7 +72,8 @@ class ManageDialog(QDialog):
             "add_product": "添加新品",
             "delete_record": "删除记录",
             "edit_note": "修改备注",
-            "edit_qty": "修改数量"
+            "edit_qty": "修改数量",
+            "manage_user": "修改用户"
         }
 
         # 构造复选框
