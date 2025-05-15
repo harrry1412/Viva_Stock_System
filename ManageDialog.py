@@ -40,11 +40,13 @@ class ManageDialog(QDialog):
         main_layout.addLayout(top_layout)
 
         # 用户状态（单选框）
+
         status_layout = QHBoxLayout()
         status_label = QLabel("用户状态:")
         status_label.setFont(font)
         self.active_radio = QRadioButton("激活")
         self.disabled_radio = QRadioButton("禁用")
+        self.active_radio.toggled.connect(self.toggle_permission_area)
         self.active_radio.setFont(font)
         self.disabled_radio.setFont(font)
 
@@ -68,11 +70,11 @@ class ManageDialog(QDialog):
         self.permission_scroll_layout = QVBoxLayout(self.permission_scroll_widget)
 
         self.permission_mapping = {
-            "edit_product": "修改产品",
-            "add_product": "添加新品",
-            "delete_record": "删除记录",
             "edit_note": "修改备注",
             "edit_qty": "修改数量",
+            "delete_record": "删除记录",
+            "add_product": "添加新品",
+            "edit_product": "修改产品",
             "manage_user": "修改用户"
         }
 
@@ -111,6 +113,10 @@ class ManageDialog(QDialog):
         if self.user_list:
             self.update_user_status(self.user_list[0]['name'])
 
+    def toggle_permission_area(self, enabled):
+        for checkbox in self.permission_checkboxes.values():
+            checkbox.setEnabled(enabled)
+
     def on_user_changed(self, index):
         username = self.user_combo.itemText(index)
         self.update_user_status(username)
@@ -129,6 +135,8 @@ class ManageDialog(QDialog):
         else:
             self.disabled_radio.setChecked(True)
 
+        self.toggle_permission_area(self.active_radio.isChecked())
+
         # 清除所有权限勾选
         for cb in self.permission_checkboxes.values():
             cb.setChecked(False)
@@ -143,25 +151,21 @@ class ManageDialog(QDialog):
         selected_user = self.user_combo.currentText()
         status = "1" if self.active_radio.isChecked() else "0"
 
-        # 获取权限字典：{permission_key: 1 or 0}
-        selected_perms = {
-            key: 1 if checkbox.isChecked() else 0
-            for key, checkbox in self.permission_checkboxes.items()
-        }
-
-        # 批量更新权限
-        success_perm = self.db_manager.update_user_permissions(selected_user, selected_perms)
-
-        # 更新用户状态
-        success_status = self.db_manager.update_user_status(selected_user, status)
-
-        if success_perm and success_status:
-            print(f"[保存成功] 用户: {selected_user}, 状态: {status}, 权限: {selected_perms}")
+        if status == "1":
+            selected_perms = {
+                key: 1 if checkbox.isChecked() else 0
+                for key, checkbox in self.permission_checkboxes.items()
+            }
         else:
-            print(f"[保存失败] 用户: {selected_user}。请检查数据库连接或写入问题。")
+            # 如果禁用，所有权限设为0
+            selected_perms = {key: 0 for key in self.permission_checkboxes}
 
+        self.db_manager.update_user_permissions(selected_user, selected_perms)
+        self.db_manager.update_user_status(selected_user, status)
+
+        print(f"[保存] 用户: {selected_user}, 状态: {status}, 权限: {selected_perms}")
         self.close()
-        self.parent().refresh_window()
+
 
 
 
