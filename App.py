@@ -859,6 +859,15 @@ class App(QMainWindow):
         self.show_current_result()
 
     def show_manage_dialog(self):
+        if self.logged != 1:
+            self.show_message('warn', '警告', '您未登录，无法管理用户。')
+            return
+        permission=self.db_manager.check_user_permission(self.user, 'manage_user')
+        if permission==-1:
+            self.exit_with_conn_error()
+        if not permission:
+            self.show_message('warn', '警告', '账户权限不足，管理用户。')
+            return
         if not self.is_latest():
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
