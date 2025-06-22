@@ -247,8 +247,7 @@ class App(QMainWindow):
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
-        if self.show_manage_bool():
-            search_layout.addWidget(self.manage_button)
+        search_layout.addWidget(self.manage_button)
         if self.show_about_bool():
             search_layout.addWidget(self.about_button)
         search_layout.addWidget(self.change_password_button)
@@ -292,7 +291,8 @@ class App(QMainWindow):
         self.manage_button.clicked.connect(self.show_manage_dialog)
         self.change_password_button.clicked.connect(self.show_change_password_dialog)
 
-        self.change_password_button.setVisible(self.logged == 1)
+        self.change_password_button.setVisible(False)
+        self.manage_button.setVisible(False)
 
 
         # 获取表的水平表头
@@ -887,7 +887,7 @@ class App(QMainWindow):
         if permission==-1:
             self.exit_with_conn_error()
         if not permission:
-            self.show_message('warn', '警告', '账户权限不足，管理用户。')
+            self.show_message('warn', '警告', '账户权限不足，无法管理用户。')
             return
         if not self.is_latest():
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
@@ -1129,6 +1129,15 @@ class App(QMainWindow):
     def update_login_dependent_ui(self):
         is_logged_in = self.logged == 1
         self.change_password_button.setVisible(is_logged_in)
+
+    def update_permission_dependent_ui(self):
+        permission=self.db_manager.check_user_permission(self.user, 'manage_user')
+        if permission==-1:
+            self.exit_with_conn_error()
+        if not permission:
+            return
+        self.manage_button.setVisible(True)
+        print('MANAGE ACTIVATED')
     
     def refresh_window(self):
         self.refresh_time=datetime.datetime.now()
