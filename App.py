@@ -87,6 +87,8 @@ class App(QMainWindow):
         self.init_database_connection()
         self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
         self.check_version()
+
+        self.logged = 0
         self.initUI()
     
         self.undo_stack = []
@@ -109,7 +111,7 @@ class App(QMainWindow):
         self.record_index = 0
         self.action_index = 0
         self.refresh_time = datetime.datetime.now()
-        self.logged = 0
+
 
     def load_config(self):
         print("当前工作目录:", os.getcwd())
@@ -949,19 +951,23 @@ class App(QMainWindow):
 
     def logout(self):
         self.logged = 0
+        self.update_login_dependent_ui()
         self.login_button.setText('登录')
         self.welcome_label.setText('Welcome Guest')
         self.user = 'Guest'
         
         self.show_message('info', 'Logout', 'Logout Successful')
 
+
     def logout_after_change_password(self):
         self.logged = 0
+        self.update_login_dependent_ui()
         self.login_button.setText('登录')
         self.welcome_label.setText('Welcome Guest')
         self.user = 'Guest'
         
         self.show_message('info', 'Logout', '请使用新密码重新登录')
+
 
     def show_login_dialog(self):
         login_dialog = LoginDialog(self)
@@ -1003,6 +1009,8 @@ class App(QMainWindow):
         self.welcome_label.setText('Welcome, ' + self.user)
         self.login_button.setText('登出')
         self.logged = 1
+        self.update_login_dependent_ui()
+
 
     def is_latest(self):
         dict=self.db_manager.fetch_last_modified()
@@ -1110,6 +1118,10 @@ class App(QMainWindow):
         self.note_index=self.get_column_index_by_name('备注')
         self.record_index=self.get_column_index_by_name('记录')
         self.action_index=self.get_column_index_by_name('操作')
+
+    def update_login_dependent_ui(self):
+        is_logged_in = self.logged == 1
+        self.change_password_button.setVisible(is_logged_in)
     
     def refresh_window(self):
         self.refresh_time=datetime.datetime.now()
