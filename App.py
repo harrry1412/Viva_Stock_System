@@ -901,9 +901,10 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '您未登录，无法修改密码。')
             return
         dialog = ChangePasswordDialog(self, self.user, self.db_manager)
-        dialog.exec_()
-        self.refresh_window()
-        self.logout_after_change_password()
+        result=dialog.exec_()
+        if result == QDialog.Accepted:
+            self.refresh_window()
+            self.logout_after_change_password()
 
     def show_filter_dialog(self):
         filter_dialog = FilterDialog(self)
