@@ -35,7 +35,6 @@ class ManageDialog(QDialog):
         self.add_user_button.clicked.connect(self.show_add_user_dialog)
         add_user_layout.addStretch()
         add_user_layout.addWidget(self.add_user_button)
-        add_user_layout.addStretch()
         main_layout.addLayout(add_user_layout)
 
 

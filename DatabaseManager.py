@@ -523,7 +523,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            query = "INSERT INTO user (name, password, status) VALUES (%s, %s, %s)"
+            query = "INSERT INTO user (name, pwd, status) VALUES (%s, %s, %s)"
             cursor.execute(query, (username, password, status))
             conn.commit()
             return True
