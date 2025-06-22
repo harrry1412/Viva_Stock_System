@@ -247,9 +247,9 @@ class App(QMainWindow):
         search_layout.addWidget(self.refresh_button)
         search_layout.addWidget(self.add_button)
         search_layout.addWidget(self.export_button)
-        search_layout.addWidget(self.manage_button)
         if self.show_about_bool():
             search_layout.addWidget(self.about_button)
+        search_layout.addWidget(self.manage_button)
         search_layout.addWidget(self.change_password_button)
         search_layout.addWidget(self.login_button)
         search_layout.addStretch(1)
