@@ -166,14 +166,21 @@ class App(QMainWindow):
         version_now=version_now_str[1:]
         parts=version_now.split('.')
         vn1, vn2, vn3=int(parts[0]), int(parts[1]), int(parts[2])
+        if (v1, v2, v3) < (vn1, vn2, vn3):
+            if vn1 > v1:
+                # 大版本落后
+                self.show_message('warn', '警告: 版本落后',
+                    f'当前版本: {v1}.{v2}.{v3}, 最新版本包含重要更新，请联系开发者更新后继续使用，或暂时使用其它设备上已更新的本应用。')
+                sys.exit(1)
+            elif vn2 > v2:
+                # 小版本落后
+                self.show_message('warn', '警告: 版本落后',
+                    f'当前版本: {v1}.{v2}.{v3}, 最新版本包含轻量级更新，建议联系开发者更新后继续使用，或暂时使用其它设备上已更新的本应用。')
+            elif vn3 > v3:
+                # 修订版本落后
+                self.show_message('warn', '警告: 版本落后',
+                    f'当前版本: {v1}.{v2}.{v3}, 最新版本包含小幅修复，建议尽快更新。')
 
-        if (vn1>v1):
-            # 大版本落后
-            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本包含重要更新，请联系开发者更新后继续使用，或暂时使用其它设备上已更新的本应用。')
-            sys.exit(1)
-        elif (vn2>vn2 or vn3>v3):
-            # 小版本落后
-            self.show_message('warn', '警告: 版本落后', f'当前版本: {self.version}, 最新版本包含轻量级更新，建议联系开发者更新后继续使用，或暂时使用其它设备上已更新的本应用。')
 
     def initUI(self):
         self.setWindowTitle(self.title)
