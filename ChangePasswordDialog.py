@@ -54,7 +54,7 @@ class ChangePasswordDialog(QDialog):
         self.layout.addWidget(self.confirm_pwd_label)
         self.layout.addWidget(self.confirm_pwd_input)
 
-        self.submit_button = QPushButton('提交')
+        self.submit_button = QPushButton('确认')
         self.cancel_button = QPushButton('取消')
         self.submit_button.setFont(font)
         self.cancel_button.setFont(font)

@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QCheckBox, QPushButton, QComboBox,
-    QLabel, QWidget, QScrollArea, QRadioButton, QButtonGroup
+    QLabel, QWidget, QScrollArea, QRadioButton, QButtonGroup, QMessageBox
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
+from AddUserDialog import AddUserDialog
 import sys
 
 class ManageDialog(QDialog):
@@ -26,6 +27,17 @@ class ManageDialog(QDialog):
         font = QFont()
         font.setPointSize(14)
         main_layout = QVBoxLayout(self)
+
+        # 顶部添加按钮区域
+        add_user_layout = QHBoxLayout()
+        self.add_user_button = QPushButton("添加用户")
+        self.add_user_button.setFont(font)
+        self.add_user_button.clicked.connect(self.show_add_user_dialog)
+        add_user_layout.addStretch()
+        add_user_layout.addWidget(self.add_user_button)
+        add_user_layout.addStretch()
+        main_layout.addLayout(add_user_layout)
+
 
         # 下拉框选择用户
         top_layout = QHBoxLayout()
@@ -112,6 +124,31 @@ class ManageDialog(QDialog):
         # 初始化第一项
         if self.user_list:
             self.update_user_status(self.user_list[0]['name'])
+
+    def show_add_user_dialog(self):
+        dialog = AddUserDialog(self)
+        if dialog.exec_() == QDialog.Accepted:
+            username, password = dialog.get_user_info()
+            if not username or not password:
+                QMessageBox.warning(self, "错误", "用户名和密码不能为空")
+                return
+
+            # 插入用户（默认禁用）
+            success_user = self.db_manager.insert_user(username, password, status="0")
+
+            # 插入该用户的所有权限，stat=0
+            all_perms = list(self.permission_mapping.keys())
+            success_perm = self.db_manager.insert_user_permissions_default(username, all_perms)
+
+            if success_user and success_perm:
+                QMessageBox.information(self, "成功", f"用户 {username} 已添加（默认禁用）")
+                # 添加到当前下拉框列表中
+                self.user_list.append({"name": username, "status": "0"})
+                self.user_dict[username] = "0"
+                self.user_combo.addItem(username)
+            else:
+                QMessageBox.critical(self, "失败", "添加用户失败，请检查数据库")
+
 
     def toggle_permission_area(self, enabled):
         for checkbox in self.permission_checkboxes.values():

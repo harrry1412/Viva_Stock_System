@@ -518,6 +518,40 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def insert_user(self, username, password, status="0"):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = "INSERT INTO user (name, password, status) VALUES (%s, %s, %s)"
+            cursor.execute(query, (username, password, status))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"插入用户失败: {e}")
+            if conn: conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def insert_user_permissions_default(self, username, permissions):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = "INSERT INTO user_permission (usr, permission, stat) VALUES (%s, %s, 0)"
+            for perm in permissions:
+                cursor.execute(query, (username, perm))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"插入权限失败: {e}")
+            if conn: conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
 
     def check_user_permission(self, user, permission):
         conn = None
