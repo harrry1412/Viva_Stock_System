@@ -444,7 +444,12 @@ class App(QMainWindow):
             return False
         
     def show_manage_bool(self):
-        return True
+        dict=self.db_manager.fetch_show_manage()
+        show=dict['user']
+        if show == 'yes':
+            return True
+        else:
+            return False
 
 
     def populate_table(self):

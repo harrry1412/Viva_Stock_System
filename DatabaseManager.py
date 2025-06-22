@@ -723,6 +723,31 @@ class DatabaseManager:
         finally:
             if conn and conn.is_connected():
                 conn.close()
+    
+    def fetch_show_manage(self):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            fetch_query = """
+            SELECT tim, usr FROM time_log
+            WHERE title = 'show_manage'
+            LIMIT 1;
+            """
+            cursor.execute(fetch_query)
+            result = cursor.fetchone()
+            if result:
+                # 如果查询到结果，将其封装在字典中返回
+                return {'time': result[0], 'user': result[1]}
+            else:
+                # 如果没有查询到结果，返回一个空字典
+                return {}
+        except Exception as e:
+            print(f"An error occurred while fetching the last modified time: {e}")
+            return {}
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
 
     def fetch_version(self):
         conn = None
