@@ -959,6 +959,7 @@ class App(QMainWindow):
     def logout(self):
         self.logged = 0
         self.update_login_dependent_ui()
+        self.disable_permission_dependent_ui()
         self.login_button.setText('登录')
         self.welcome_label.setText('Welcome Guest')
         self.user = 'Guest'
@@ -1017,6 +1018,7 @@ class App(QMainWindow):
         self.login_button.setText('登出')
         self.logged = 1
         self.update_login_dependent_ui()
+        self.enable_permission_dependent_ui()
 
 
     def is_latest(self):
@@ -1130,14 +1132,16 @@ class App(QMainWindow):
         is_logged_in = self.logged == 1
         self.change_password_button.setVisible(is_logged_in)
 
-    def update_permission_dependent_ui(self):
+    def enable_permission_dependent_ui(self):
         permission=self.db_manager.check_user_permission(self.user, 'manage_user')
         if permission==-1:
             self.exit_with_conn_error()
         if not permission:
             return
         self.manage_button.setVisible(True)
-        print('MANAGE ACTIVATED')
+
+    def disable_permission_dependent_ui(self):
+        self.manage_button.setVisible(False)
     
     def refresh_window(self):
         self.refresh_time=datetime.datetime.now()
