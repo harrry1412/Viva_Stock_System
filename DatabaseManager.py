@@ -195,6 +195,55 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def verify_password(self, username, input_password):
+        print(f"调试 verify_password() 入参: username={username}, 类型={type(username)}, input_password={input_password}")
+
+        conn = None
+        try:
+            conn = self.connect()
+            if conn:
+                cursor = conn.cursor()
+            else:
+                return -1  # 数据库连接失败
+
+            query = "SELECT pwd FROM user WHERE name=%s"
+            cursor.execute(query, (username,))
+            row = cursor.fetchone()
+            if row:
+                stored_password = row[0]
+                if input_password == stored_password:
+                    return 1  # 密码正确
+                else:
+                    return 0  # 密码错误
+            else:
+                return 0  # 用户不存在视为密码错误
+        except Exception as e:
+            print(f"验证密码时出错: {e}")
+            return -1
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
+    def update_password(self, username, new_password):
+        conn = None
+        try:
+            conn = self.connect()
+            if conn:
+                cursor = conn.cursor()
+            else:
+                return -1  # 数据库连接失败
+
+            update_query = "UPDATE user SET pwd=%s WHERE name=%s"
+            cursor.execute(update_query, (new_password, username))
+            conn.commit()
+            return 1  # 修改成功
+        except Exception as e:
+            print(f"更新密码时出错: {e}")
+            return -1
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
     def update_rug_quantity(self, rug_id, new_quantity):
         conn = None
         try:

@@ -30,6 +30,7 @@ from ImageLable import ImageLabel
 from AboutDialog import AboutDialog
 from LoadingDialog import LoadingDialog
 from ManageDialog import ManageDialog
+from ChangePasswordDialog import ChangePasswordDialog
 from TestDialog import TestDialog
 from ClickableLineEdit import ClickableLineEdit
 import datetime
@@ -41,7 +42,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V9.8.9'
+        self.version = 'V9.8.10'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -204,6 +205,7 @@ class App(QMainWindow):
         self.export_button = QPushButton('导出')
         self.manage_button = QPushButton('管理')
         self.about_button = QPushButton('关于')
+        self.change_password_button = QPushButton('修改密码')
         self.login_button = QPushButton('登录')
 
         
@@ -223,6 +225,7 @@ class App(QMainWindow):
         self.export_button.setFont(font)
         self.manage_button.setFont(font)
         self.about_button.setFont(font)
+        self.change_password_button.setFont(font)
         self.login_button.setFont(font)
 
         search_layout.addWidget(self.search_label)
@@ -239,6 +242,7 @@ class App(QMainWindow):
             search_layout.addWidget(self.manage_button)
         if self.show_about_bool():
             search_layout.addWidget(self.about_button)
+        search_layout.addWidget(self.change_password_button)
         search_layout.addWidget(self.login_button)
         search_layout.addStretch(1)
         search_layout.setContentsMargins(0, 0, 0, 0)
@@ -277,6 +281,7 @@ class App(QMainWindow):
         self.order_button.clicked.connect(self.show_order_dialog)
         self.refresh_button.clicked.connect(self.refresh_window)
         self.manage_button.clicked.connect(self.show_manage_dialog)
+        self.change_password_button.clicked.connect(self.show_change_password_dialog)
 
 
         # 获取表的水平表头
@@ -877,6 +882,14 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
         dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
+        dialog.exec_()
+        self.refresh_window()
+
+    def show_change_password_dialog(self):
+        if self.logged != 1:
+            self.show_message('warn', '警告', '您未登录，无法修改密码。')
+            return
+        dialog = ChangePasswordDialog(self, self.user, self.db_manager)
         dialog.exec_()
         self.refresh_window()
 
