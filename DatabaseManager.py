@@ -196,8 +196,6 @@ class DatabaseManager:
                 conn.close()
 
     def verify_password(self, username, input_password):
-        print(f"调试 verify_password() 入参: username={username}, 类型={type(username)}, input_password={input_password}")
-
         conn = None
         try:
             conn = self.connect()

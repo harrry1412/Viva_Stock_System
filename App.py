@@ -283,6 +283,8 @@ class App(QMainWindow):
         self.manage_button.clicked.connect(self.show_manage_dialog)
         self.change_password_button.clicked.connect(self.show_change_password_dialog)
 
+        self.change_password_button.setVisible(self.logged == 1)
+
 
         # 获取表的水平表头
         header = self.table_widget.horizontalHeader()
@@ -892,6 +894,7 @@ class App(QMainWindow):
         dialog = ChangePasswordDialog(self, self.user, self.db_manager)
         dialog.exec_()
         self.refresh_window()
+        self.logout_after_change_password()
 
     def show_filter_dialog(self):
         filter_dialog = FilterDialog(self)
@@ -952,6 +955,13 @@ class App(QMainWindow):
         
         self.show_message('info', 'Logout', 'Logout Successful')
 
+    def logout_after_change_password(self):
+        self.logged = 0
+        self.login_button.setText('登录')
+        self.welcome_label.setText('Welcome Guest')
+        self.user = 'Guest'
+        
+        self.show_message('info', 'Logout', '请使用新密码重新登录')
 
     def show_login_dialog(self):
         login_dialog = LoginDialog(self)

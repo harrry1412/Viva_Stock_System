@@ -79,15 +79,7 @@ class ChangePasswordDialog(QDialog):
             QMessageBox.warning(self, "错误", "所有字段不能为空")
             return
 
-        if len(new_pwd) < 3:
-            QMessageBox.warning(self, "错误", "新密码长度必须至少为3个字符")
-            return
-
-        if new_pwd != confirm_pwd:
-            QMessageBox.warning(self, "错误", "两次输入的新密码不一致")
-            return
-
-        # === 验证原密码 ===
+        # === 1. 验证原密码是否正确 ===
         correct = self.db_manager.verify_password(self.username, old_pwd)
         if correct == -1:
             QMessageBox.critical(self, "错误", "数据库连接失败")
@@ -96,7 +88,22 @@ class ChangePasswordDialog(QDialog):
             QMessageBox.warning(self, "错误", "原密码错误")
             return
 
-        # === 更新密码 ===
+        # === 2. 判断新密码与确认密码是否一致 ===
+        if new_pwd != confirm_pwd:
+            QMessageBox.warning(self, "错误", "两次输入的新密码不一致")
+            return
+
+        # === 3. 判断新旧密码是否相同 ===
+        if new_pwd == old_pwd:
+            QMessageBox.warning(self, "错误", "新密码不能与原密码相同")
+            return
+
+        # === 4. 判断新密码长度是否符合要求 ===
+        if len(new_pwd) < 3:
+            QMessageBox.warning(self, "错误", "新密码长度必须至少为3个字符")
+            return
+
+        # === 5. 更新密码 ===
         success = self.db_manager.update_password(self.username, new_pwd)
         if success == -1:
             QMessageBox.critical(self, "错误", "数据库连接失败")
