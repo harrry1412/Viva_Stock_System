@@ -191,11 +191,11 @@ class App(QMainWindow):
         else:
             # 从源代码运行的情况
             application_path = os.path.dirname(os.path.abspath(__file__))
-
         icon_path = os.path.join(application_path, 'vivastock.ico')
 
         # 设置窗口图标
         self.setWindowIcon(QtGui.QIcon(icon_path))
+
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
