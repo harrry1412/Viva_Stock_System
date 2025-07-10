@@ -36,6 +36,7 @@ from ClickableLineEdit import ClickableLineEdit
 import datetime
 from EditProductDialog import EditProductDialog
 from ExcelExporter import ExcelExporter
+from UserFetcher import UserFetcher
 import time
 
 
@@ -52,6 +53,7 @@ class App(QMainWindow):
         print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
         self.supplier_list = None
         self.category_list = None
+        self.user_list = None
         self.filtered_suppliers = []
         self.filtered_categories = []
         self.image_loaders = []
@@ -377,8 +379,15 @@ class App(QMainWindow):
         self.category_list.sort(key=lambda x: lazy_pinyin(x))
 
     def update_user_list(self):
-        self.user_list = self.db_manager.fetch_users()
-        self.user_list.sort(key=lambda x: x["name"].lower())
+        fetcher = UserFetcher(self.db_manager)
+        fetcher.signals.finished.connect(self.set_user_list)
+        fetcher.signals.error.connect(lambda err: print("加载用户失败:", err))
+        self.thread_pool.start(fetcher)
+
+
+    def set_user_list(self, user_list):
+        self.user_list = user_list
+
 
     def get_suppliers(self):
         return self.supplier_list
@@ -472,7 +481,7 @@ class App(QMainWindow):
         # 更新Suppliers category列表
         self.update_suppliers()
         self.update_categories()
-        self.update_user_list()
+        #self.update_user_list()
         # 将滚动条移动到最上面
         self.table_widget.verticalScrollBar().setValue(0)
 
@@ -883,8 +892,8 @@ class App(QMainWindow):
         if self.logged != 1:
             self.show_message('warn', '警告', '您未登录，无法管理用户。')
             return
-        permission=self.db_manager.check_user_permission(self.user, 'manage_user')
-        if permission==-1:
+        permission = self.db_manager.check_user_permission(self.user, 'manage_user')
+        if permission == -1:
             self.exit_with_conn_error()
         if not permission:
             self.show_message('warn', '警告', '账户权限不足，无法管理用户。')
@@ -892,9 +901,32 @@ class App(QMainWindow):
         if not self.is_latest():
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
-        dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
-        dialog.exec_()
-        self.refresh_window()
+
+        # 延迟加载用户数据（仅首次）
+        if not self.user_list:
+            self.update_user_list()
+
+            # 弹出临时加载中提示
+            loading_msg = self.show_message('info', '正在加载', '正在加载用户列表，请稍候...', temporary=True)
+
+            # 等待加载完成后再打开对话框
+            def try_open_dialog():
+                if self.user_list:
+                    loading_msg.close()
+                    dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
+                    dialog.exec_()
+                    self.refresh_window()
+                else:
+                    QTimer.singleShot(200, try_open_dialog)
+
+            QTimer.singleShot(200, try_open_dialog)
+
+        else:
+            # 已加载过，直接打开
+            dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
+            dialog.exec_()
+            self.refresh_window()
+
 
     def show_change_password_dialog(self):
         if self.logged != 1:

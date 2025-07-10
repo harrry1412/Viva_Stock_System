@@ -86,6 +86,7 @@ class DatabaseManager:
                 conn.close()
 
     def fetch_users(self):
+        print('FETCH USERS')
         conn = None
         try:
             conn = self.connect()
