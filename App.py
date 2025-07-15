@@ -50,7 +50,9 @@ class App(QMainWindow):
         self.full_size_image_thread_pool.setMaxThreadCount(1)
         self.record_thread_pool = QThreadPool()
         self.record_thread_pool.setMaxThreadCount(1)
-        print("Multithreading with maximum %d threads" % self.thread_pool.maxThreadCount())
+        self.user_thread_pool = QThreadPool()
+        self.user_thread_pool.setMaxThreadCount(1)
+
         self.supplier_list = None
         self.category_list = None
         self.user_list = None
@@ -380,9 +382,10 @@ class App(QMainWindow):
 
     def update_user_list(self):
         fetcher = UserFetcher(self.db_manager)
-        fetcher.signals.finished.connect(self.set_user_list)
-        fetcher.signals.error.connect(lambda err: print("加载用户失败:", err))
-        self.thread_pool.start(fetcher)
+        fetcher.signals.users_loaded.connect(self.set_user_list)
+        fetcher.signals.error.connect(lambda msg: print("加载用户失败:", msg))
+        self.user_thread_pool.start(fetcher)
+
 
 
     def set_user_list(self, user_list):

@@ -1,8 +1,8 @@
-from PyQt5.QtCore import QRunnable, pyqtSignal, QObject
+from PyQt5.QtCore import QObject, QRunnable, pyqtSignal
 
 class UserFetcherSignals(QObject):
-    finished = pyqtSignal(list)  # 成功返回用户列表
-    error = pyqtSignal(str)      # 发生错误时发送错误信息
+    users_loaded = pyqtSignal(list)  # 返回完整的用户列表
+    error = pyqtSignal(str)
 
 class UserFetcher(QRunnable):
     def __init__(self, db_manager):
@@ -13,7 +13,6 @@ class UserFetcher(QRunnable):
     def run(self):
         try:
             users = self.db_manager.fetch_users()
-            users.sort(key=lambda x: x["name"].lower())
-            self.signals.finished.emit(users)
+            self.signals.users_loaded.emit(users)
         except Exception as e:
             self.signals.error.emit(str(e))

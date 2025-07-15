@@ -2,35 +2,32 @@ import configparser
 import mysql.connector
 from mysql.connector import pooling, Error
 import datetime
+import threading
 
 import os
 import sys
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QThreadPool
 
 class DatabaseManager:
     def __init__(self):
         self.initialized = False
-        
+
         # 检测是否运行在一个打包后的环境
         if getattr(sys, 'frozen', False):
-            # 打包后的情况，配置文件路径是exe文件旁边
             base_path = sys._MEIPASS
         else:
-            # 从源代码运行的情况，配置文件在当前文件的同级目录
             base_path = os.path.dirname(os.path.abspath(__file__))
-        
-        # 默认配置文件路径
+
         config_path = os.path.join(base_path, 'mysql.txt')
-        
-        # 尝试连接
+
         if not self.try_connect(config_path):
-            # 如果第一次连接失败，尝试备用路径
             backup_config_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\mysql.txt'
             if not self.try_connect(backup_config_path):
-                # 如果备用路径也失败，打印错误信息
                 print("Both attempts to connect to the database have failed.")
+
 
     def try_connect(self, config_path):
         if not os.path.exists(config_path):
@@ -89,9 +86,15 @@ class DatabaseManager:
         print('FETCH USERS')
         conn = None
         try:
+            print(f"[用户加载] 开始")
+            start = datetime.datetime.now()
             conn = self.connect()
+            print(f"[用户加载] 连接耗时：{datetime.datetime.now() - start}")
+
             cursor = conn.cursor()
             cursor.execute("SELECT name, status FROM user")
+            print(f"[用户加载] 查询耗时：{datetime.datetime.now() - start}")
+
             users = [{"name": row[0], "status": row[1]} for row in cursor.fetchall()]
             return users
         except Exception as e:
