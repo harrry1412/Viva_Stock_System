@@ -902,17 +902,19 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
-        # 延迟加载用户数据（仅首次）
         if not self.user_list:
             self.update_user_list()
 
-            # 弹出临时加载中提示
-            loading_msg = self.show_message('info', '正在加载', '正在加载用户列表，请稍候...', temporary=True)
+            self.loading_dialog = QProgressDialog("正在加载用户列表，请稍候...", None, 0, 0, self)
+            self.loading_dialog.setWindowTitle("请稍候")
+            self.loading_dialog.setWindowModality(Qt.ApplicationModal)
+            self.loading_dialog.setCancelButton(None)
+            self.loading_dialog.setWindowFlag(Qt.WindowCloseButtonHint, False)
+            self.loading_dialog.show()
 
-            # 等待加载完成后再打开对话框
             def try_open_dialog():
                 if self.user_list:
-                    loading_msg.close()
+                    self.loading_dialog.close()
                     dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
                     dialog.exec_()
                     self.refresh_window()
@@ -926,6 +928,7 @@ class App(QMainWindow):
             dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
             dialog.exec_()
             self.refresh_window()
+
 
 
     def show_change_password_dialog(self):

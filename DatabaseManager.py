@@ -527,6 +527,7 @@ class DatabaseManager:
             query = "INSERT INTO user (name, pwd, status) VALUES (%s, %s, %s)"
             cursor.execute(query, (username, password, status))
             conn.commit()
+            self.update_last_modified_time('ADMIN')
             return True
         except Exception as e:
             print(f"插入用户失败: {e}")
@@ -545,6 +546,7 @@ class DatabaseManager:
             for perm in permissions:
                 cursor.execute(query, (username, perm))
             conn.commit()
+            self.update_last_modified_time('ADMIN')
             return True
         except Exception as e:
             print(f"插入权限失败: {e}")
