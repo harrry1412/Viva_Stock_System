@@ -92,7 +92,7 @@ class DatabaseManager:
             print(f"[用户加载] 连接耗时：{datetime.datetime.now() - start}")
 
             cursor = conn.cursor()
-            cursor.execute("SELECT name, status FROM user")
+            cursor.execute("SELECT name, status FROM user order by name")
             print(f"[用户加载] 查询耗时：{datetime.datetime.now() - start}")
 
             users = [{"name": row[0], "status": row[1]} for row in cursor.fetchall()]

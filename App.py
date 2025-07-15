@@ -43,7 +43,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V10.0.0'
+        self.version = 'V10.1.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -905,33 +905,24 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
 
+        # 用户列表未加载时，异步加载 + 注册回调
         if not self.user_list:
-            self.update_user_list()
+            def on_user_list_ready(users):
+                self.set_user_list(users)
+                dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
+                dialog.exec_()
+                self.refresh_window()
 
-            self.loading_dialog = QProgressDialog("正在加载用户列表，请稍候...", None, 0, 0, self)
-            self.loading_dialog.setWindowTitle("请稍候")
-            self.loading_dialog.setWindowModality(Qt.ApplicationModal)
-            self.loading_dialog.setCancelButton(None)
-            self.loading_dialog.setWindowFlag(Qt.WindowCloseButtonHint, False)
-            self.loading_dialog.show()
-
-            def try_open_dialog():
-                if self.user_list:
-                    self.loading_dialog.close()
-                    dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
-                    dialog.exec_()
-                    self.refresh_window()
-                else:
-                    QTimer.singleShot(200, try_open_dialog)
-
-            QTimer.singleShot(200, try_open_dialog)
+            from UserFetcher import UserFetcher
+            fetcher = UserFetcher(self.db_manager)
+            fetcher.signals.users_loaded.connect(on_user_list_ready)
+            fetcher.signals.error.connect(lambda msg: print("加载用户失败:", msg))
+            self.user_thread_pool.start(fetcher)
 
         else:
-            # 已加载过，直接打开
             dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
             dialog.exec_()
             self.refresh_window()
-
 
 
     def show_change_password_dialog(self):
