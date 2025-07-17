@@ -22,10 +22,20 @@ class DatabaseManager:
             base_path = os.path.dirname(os.path.abspath(__file__))
 
         config_path = os.path.join(base_path, 'mysql.txt')
+        backup_config_path = r'\\VIVA303-WORK\Viva店面共享\StockImg\mysql.txt'
 
         if not self.try_connect(config_path):
-            backup_config_path = '\\\\VIVA303-WORK\\Viva店面共享\\StockImg\\mysql.txt'
-            if not self.try_connect(backup_config_path):
+            if self.try_connect(backup_config_path):
+                # 如果备用路径成功连接，替换本地配置文件
+                try:
+                    with open(backup_config_path, 'r', encoding='utf-8') as src:
+                        content = src.read()
+                    with open(config_path, 'w', encoding='utf-8') as dst:
+                        dst.write(content)
+                    print("主配置连接失败，已使用共享路径配置并覆盖本地配置。")
+                except Exception as e:
+                    print(f"配置覆盖失败: {e}")
+            else:
                 print("Both attempts to connect to the database have failed.")
 
 
