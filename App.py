@@ -43,7 +43,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V10.2.0'
+        self.version = 'V10.3.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -909,7 +909,7 @@ class App(QMainWindow):
         if not self.user_list:
             def on_user_list_ready(users):
                 self.set_user_list(users)
-                dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
+                dialog = ManageDialog(self, self.user, self.get_user_list(), self.db_manager)
                 dialog.exec_()
                 self.refresh_window()
 
@@ -920,7 +920,7 @@ class App(QMainWindow):
             self.user_thread_pool.start(fetcher)
 
         else:
-            dialog = ManageDialog(self, self.get_user_list(), self.db_manager)
+            dialog = ManageDialog(self, self.user, self.get_user_list(), self.db_manager)
             dialog.exec_()
             self.refresh_window()
 

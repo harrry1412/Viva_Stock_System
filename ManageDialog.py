@@ -8,7 +8,7 @@ from AddUserDialog import AddUserDialog
 import sys
 
 class ManageDialog(QDialog):
-    def __init__(self, parent=None, user_list=None, db_manager=None):
+    def __init__(self, parent=None, user=None, user_list=None, db_manager=None):
         super().__init__(parent)
         self.setWindowTitle('管理权限设置')
 
@@ -22,6 +22,9 @@ class ManageDialog(QDialog):
 
         self.db_manager=db_manager
         self.user_list = user_list if user_list else []
+        if user:
+            self.user_list = [u for u in self.user_list if u['name'] != user and u['name'] != 'Admin']
+
         self.user_dict = {u['name']: str(u['status']) for u in self.user_list}  # status统一为字符串
 
         font = QFont()
@@ -86,7 +89,7 @@ class ManageDialog(QDialog):
             "delete_record": "删除记录",
             "add_product": "添加新品",
             "edit_product": "修改产品",
-            "manage_user": "修改用户"
+            "manage_user": "管理用户"
         }
 
         # 构造复选框
@@ -128,8 +131,16 @@ class ManageDialog(QDialog):
         dialog = AddUserDialog(self)
         if dialog.exec_() == QDialog.Accepted:
             username, password = dialog.get_user_info()
+
+            # 校验用户名和密码
             if not username or not password:
                 QMessageBox.warning(self, "错误", "用户名和密码不能为空")
+                return
+            if username.lower() == "admin":
+                QMessageBox.warning(self, "错误", "用户名不能为 admin")
+                return
+            if len(password) < 3:
+                QMessageBox.warning(self, "错误", "密码不能少于 3 位")
                 return
 
             # 插入用户（默认禁用）
@@ -147,6 +158,7 @@ class ManageDialog(QDialog):
                 self.user_combo.addItem(username)
             else:
                 QMessageBox.critical(self, "失败", "添加用户失败，请检查数据库")
+
 
 
     def toggle_permission_area(self, enabled):

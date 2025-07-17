@@ -93,17 +93,12 @@ class DatabaseManager:
                 conn.close()
 
     def fetch_users(self):
-        print('FETCH USERS')
         conn = None
         try:
-            print(f"[用户加载] 开始")
-            start = datetime.datetime.now()
             conn = self.connect()
-            print(f"[用户加载] 连接耗时：{datetime.datetime.now() - start}")
 
             cursor = conn.cursor()
             cursor.execute("SELECT name, status FROM user order by name")
-            print(f"[用户加载] 查询耗时：{datetime.datetime.now() - start}")
 
             users = [{"name": row[0], "status": row[1]} for row in cursor.fetchall()]
             return users
