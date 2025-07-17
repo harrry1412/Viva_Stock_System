@@ -128,11 +128,12 @@ class ManageDialog(QDialog):
             self.update_user_status(self.user_list[0]['name'])
 
     def show_add_user_dialog(self):
-        dialog = AddUserDialog(self)
+        dialog = AddUserDialog(self, self.db_manager)
         if dialog.exec_() == QDialog.Accepted:
             username, password = dialog.get_user_info()
 
             # 此处无需再检查有效性，已在 dialog 内完成
+            username = username.capitalize()
             success_user = self.db_manager.insert_user(username, password, status="0")
             all_perms = list(self.permission_mapping.keys())
             success_perm = self.db_manager.insert_user_permissions_default(username, all_perms)

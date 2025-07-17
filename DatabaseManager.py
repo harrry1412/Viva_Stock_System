@@ -366,6 +366,23 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def user_exists(self, username):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = "SELECT COUNT(*) FROM user WHERE name = %s"
+
+            cursor.execute(query, (username,))
+            (count,) = cursor.fetchone()
+
+            return count > 0
+        except Exception as e:
+            print(f"Error checking user existence: {e}")
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
 
     def id_exists(self, id):
         conn = None

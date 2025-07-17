@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 import sys
 
 class AddUserDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, db_manager=None):
         super().__init__(parent)
         self.setWindowTitle('添加新用户')
         if getattr(sys, 'frozen', False):
@@ -17,6 +17,8 @@ class AddUserDialog(QDialog):
 
         font = QFont()
         font.setPointSize(16)
+
+        self.db_manager=db_manager
 
         # 用户名
         self.username_label = QLabel("用户名:")
@@ -71,12 +73,20 @@ class AddUserDialog(QDialog):
         if not username or not password:
             QMessageBox.warning(self, "错误", "用户名和密码不能为空")
             return
+        if ' ' in username or ' ' in password:
+            QMessageBox.warning(self, "错误", "用户名和密码不能包含空格")
+            return
         if username.lower() == "admin":
             QMessageBox.warning(self, "错误", "用户名不能为 admin")
             return
         if len(password) < 3:
             QMessageBox.warning(self, "错误", "密码不能少于 3 位")
             return
+        if self.db_manager and self.db_manager.user_exists(username.capitalize()):
+            QMessageBox.warning(self, "错误", "该用户名已存在，请使用其他用户名")
+            return
 
         super().accept()
+
+
 

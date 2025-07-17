@@ -1174,7 +1174,6 @@ class App(QMainWindow):
         self.manage_button.setVisible(False)
     
     def refresh_window(self):
-        self.refresh_time=datetime.datetime.now()
         self.filtered_suppliers=[]
         self.filtered_categories=[]
         self.reset_application()
@@ -1194,6 +1193,9 @@ class App(QMainWindow):
         # 重新加载数据
         self.order_key='none'
         self.last_search=''
+        self.update_user_list()
+
+        self.refresh_time=datetime.datetime.now()
         self.populate_table()
 
     def cancel_background_tasks(self):
@@ -1206,6 +1208,7 @@ class App(QMainWindow):
         self.thread_pool.clear()
         self.full_size_image_thread_pool.clear()
         self.record_thread_pool.clear()
+        self.user_thread_pool.clear()
 
     # overwrite build in closeEvent method
     def closeEvent(self, event):
