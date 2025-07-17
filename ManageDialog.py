@@ -132,33 +132,18 @@ class ManageDialog(QDialog):
         if dialog.exec_() == QDialog.Accepted:
             username, password = dialog.get_user_info()
 
-            # 校验用户名和密码
-            if not username or not password:
-                QMessageBox.warning(self, "错误", "用户名和密码不能为空")
-                return
-            if username.lower() == "admin":
-                QMessageBox.warning(self, "错误", "用户名不能为 admin")
-                return
-            if len(password) < 3:
-                QMessageBox.warning(self, "错误", "密码不能少于 3 位")
-                return
-
-            # 插入用户（默认禁用）
+            # 此处无需再检查有效性，已在 dialog 内完成
             success_user = self.db_manager.insert_user(username, password, status="0")
-
-            # 插入该用户的所有权限，stat=0
             all_perms = list(self.permission_mapping.keys())
             success_perm = self.db_manager.insert_user_permissions_default(username, all_perms)
 
             if success_user and success_perm:
                 QMessageBox.information(self, "成功", f"用户 {username} 已添加（默认禁用）")
-                # 添加到当前下拉框列表中
                 self.user_list.append({"name": username, "status": "0"})
                 self.user_dict[username] = "0"
                 self.user_combo.addItem(username)
             else:
                 QMessageBox.critical(self, "失败", "添加用户失败，请检查数据库")
-
 
 
     def toggle_permission_area(self, enabled):

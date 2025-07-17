@@ -63,3 +63,20 @@ class AddUserDialog(QDialog):
 
     def get_user_info(self):
         return self.username_input.text().strip(), self.password_input.text().strip()
+    
+    def accept(self):
+        username = self.username_input.text().strip()
+        password = self.password_input.text().strip()
+
+        if not username or not password:
+            QMessageBox.warning(self, "错误", "用户名和密码不能为空")
+            return
+        if username.lower() == "admin":
+            QMessageBox.warning(self, "错误", "用户名不能为 admin")
+            return
+        if len(password) < 3:
+            QMessageBox.warning(self, "错误", "密码不能少于 3 位")
+            return
+
+        super().accept()
+
