@@ -663,6 +663,9 @@ class App(QMainWindow):
         if permission:
             permission_level=2
 
+        if not self.is_latest():
+            self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
+            return
         rug_id = self.table_widget.item(row, self.id_index).text()
         old_note = self.table_widget.item(row, self.note_index).text()
         note_dialog = NoteDialog(self, rug_id, old_note, permission_level)
