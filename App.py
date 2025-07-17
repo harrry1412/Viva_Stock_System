@@ -692,6 +692,7 @@ class App(QMainWindow):
             # 更新表格中的备注信息
             item = self.table_widget.item(row, self.note_index)
             item.setText(new_note)
+            self.refresh_time=datetime.datetime.now()
         except mysql.connector.Error as err:
             print(f"Error updating note: {err}")
 
