@@ -1070,8 +1070,6 @@ class App(QMainWindow):
         dict=self.db_manager.fetch_last_modified()
         last_time=dict['time']
         last_user=dict['user']
-        print('self: '+self.user)
-        print('last: '+last_user)
         if (self.refresh_time < last_time) and self.user != last_user:
             return False
         else:
