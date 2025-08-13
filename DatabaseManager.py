@@ -259,7 +259,7 @@ class DatabaseManager:
             update_query = "UPDATE rug SET qty = %s WHERE id = %s and deleted=0"
             cursor.execute(update_query, (new_quantity, rug_id))
             conn.commit()
-            self.update_last_modified_time('UNKNOWN')
+            # self.update_last_modified_time('UNKNOWN')
             return True
         except Exception as e:
             print(f"更新rug数量时出错: {e}")
@@ -281,7 +281,7 @@ class DatabaseManager:
             """
             cursor.execute(insert_query, (record_id, user, content, bef, aft, date, edit_date))
             conn.commit()
-            self.update_last_modified_time(user)
+            # self.update_last_modified_time(user)
             return True
         except Exception as e:
             print(f"插入记录时发生错误: {e}")
@@ -304,7 +304,7 @@ class DatabaseManager:
             cursor.execute(insert_query, (record_id, user, bef, aft, date))
             conn.commit()
             # 更新最后修改时间
-            self.update_last_modified_time(user)
+            # self.update_last_modified_time(user)
             return True
         except Exception as e:
             print(f"插入笔记记录时发生错误: {e}")
@@ -326,7 +326,7 @@ class DatabaseManager:
             """
             cursor.execute(insert_query, (user, old, new, date))
             conn.commit()
-            self.update_last_modified_time(user) # 更新最后修改时间
+            # self.update_last_modified_time(user)
             return True
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -355,7 +355,7 @@ class DatabaseManager:
             insert_query = "INSERT INTO rug (id, qty, category, supplier, note, image, adddate, adduser) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
             cursor.execute(insert_query, processed_data)
             conn.commit()
-            self.update_last_modified_time(processed_data[7])  # 更新最后修改时间
+            # self.update_last_modified_time(processed_data[7])
             return True
         except Exception as e:
             print(f"插入产品时出错: {e}")
@@ -479,7 +479,7 @@ class DatabaseManager:
             # 执行更新操作
             cursor.execute(update_query, (new_id, old_id))
             conn.commit()
-            self.update_last_modified_time('UNKNOWN')
+            # self.update_last_modified_time('UNKNOWN')
             # 返回更新的行数，可以提供反馈信息
             rows_updated = cursor.rowcount
             print(f"{rows_updated} records updated.")
@@ -502,7 +502,7 @@ class DatabaseManager:
             update_query = "UPDATE rug SET note = %s WHERE id = %s and deleted=0"
             cursor.execute(update_query, (note, rug_id))
             conn.commit()
-            self.update_last_modified_time('UNKNOWN')
+            # self.update_last_modified_time('UNKNOWN')
             return True
         except Exception as e:
             print(f"An error occurred while updating the note: {e}")
@@ -533,7 +533,7 @@ class DatabaseManager:
                 old_model_id
             ))
             conn.commit()
-            self.update_last_modified_time('UNKNOWN')
+            # self.update_last_modified_time('UNKNOWN')
             return True
         except mysql.connector.Error as err:
             print(f"Error updating rug: {err}")
@@ -698,7 +698,7 @@ class DatabaseManager:
             """
             cursor.execute(query, (user, now, id, date))
             conn.commit()
-            self.update_last_modified_time(user)  # 更新最后修改时间
+            # self.update_last_modified_time(user)  # 更新最后修改时间
             return True
         except Exception as e:
             print(f"Error deleting record: {e}")

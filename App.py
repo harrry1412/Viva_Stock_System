@@ -43,7 +43,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V10.5.0'
+        self.version = 'V10.5.1'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -631,6 +631,7 @@ class App(QMainWindow):
             edit_date=datetime.datetime.now()
             if user!='admin':
                 success=self.db_manager.insert_record(rug_id, user, record, bef, aft, selected_date, edit_date)
+                self.db_manager.update_last_modified_time(self.user)
                 if not success:
                     self.exit_with_conn_error()
             self.update_quantity(row, rug_id, new_quantity)
@@ -642,6 +643,8 @@ class App(QMainWindow):
                 self.exit_with_conn_error()
             item = self.table_widget.item(row, self.qty_index)
             item.setText(str(int(new_quantity)))
+
+            self.db_manager.update_last_modified_time(self.user)
         except mysql.connector.Error as err:
             print(f"Error: {err}")
         try:
@@ -678,6 +681,7 @@ class App(QMainWindow):
         try:
             # 更新数据库中的备注信息
             success=self.db_manager.update_note(new_note, rug_id)
+            self.db_manager.update_last_modified_time(self.user)
             if not success:
                 self.exit_with_conn_error()
 
@@ -686,6 +690,7 @@ class App(QMainWindow):
             user=self.user
             if user!='admin' and new_note!=old_note:
                 success=self.db_manager.insert_note_record(rug_id, user, old_note, new_note, date)
+                self.db_manager.update_last_modified_time(self.user)
                 if not success:
                     self.exit_with_conn_error()
 
@@ -728,10 +733,12 @@ class App(QMainWindow):
                     edit_product_dialog.copy_images_to_folder()
                     date = datetime.datetime.now()
                     self.db_manager.insert_edit_product_record(self.user, str(old_info), str(new_info), date)
+                    self.db_manager.update_last_modified_time(self.user)
                 self.refresh_window()
 
     def update_product_to_database(self, old_rug_id, new_info):
         success = self.db_manager.update_rug_info(old_rug_id, new_info)
+        self.db_manager.update_last_modified_time(self.user)
         return success
 
     def show_add_product_dialog(self):
@@ -757,7 +764,10 @@ class App(QMainWindow):
                 if success:
                     # insert into database success, copy image now
                     add_product_dialog.copy_images_to_folder()
-                    self.db_manager.insert_record(product_data[0], product_data[7], '新增产品', 0, product_data[1], product_data[6], datetime.datetime.now())
+                    success=self.db_manager.insert_record(product_data[0], product_data[7], '新增产品', 0, product_data[1], product_data[6], datetime.datetime.now())
+                    self.db_manager.update_last_modified_time(self.user)
+                    if not success:
+                        self.exit_with_conn_error()
                 else:
                     self.exit_with_conn_error()
                 self.refresh_window()
@@ -804,6 +814,7 @@ class App(QMainWindow):
         if reply == QMessageBox.Yes:
             date_now=datetime.datetime.now()
             success=self.db_manager.delete_record(rug_id, self.user, editdate, date_now)
+            self.db_manager.update_last_modified_time(self.user)
             if not success:
                 self.exit_with_conn_error()
             old_qty=self.db_manager.fetch_record_bef(rug_id, editdate)
@@ -1059,6 +1070,8 @@ class App(QMainWindow):
         dict=self.db_manager.fetch_last_modified()
         last_time=dict['time']
         last_user=dict['user']
+        print('self: '+self.user)
+        print('last: '+last_user)
         if (self.refresh_time < last_time) and self.user != last_user:
             return False
         else:
