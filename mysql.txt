@@ -1,5 +1,5 @@
 [database]
-host=localhost
-user=root
-password=Harry303
+host=192.168.2.12
+user=viva
+password=viva303
 database=Viva

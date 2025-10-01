@@ -59,7 +59,7 @@ class LoadingDialog(QDialog):
         layout.addWidget(self.secondary_label)
 
         # 设计者信息
-        self.designer_label = QLabel("Designed by Harry")
+        self.designer_label = QLabel("Engineered by Harry")
         designer_font = QFont("Arial", int(8 * scale_factor))
         self.designer_label.setFont(designer_font)
         self.designer_label.setAlignment(Qt.AlignCenter)

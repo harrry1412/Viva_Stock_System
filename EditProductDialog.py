@@ -31,11 +31,13 @@ class EditProductDialog(QDialog):
         self.model_label = QLabel('型号:')
         self.supplier_label = QLabel('供货商:')
         self.category_label = QLabel('产品类别:')
+        self.wlevel_label = QLabel('所在仓库层:')
         self.image_label = QLabel('图片:')
 
         self.model_input = QLineEdit()
         self.supplier_input = QComboBox()
         self.category_input = QComboBox()
+        self.wlevel_input = QLineEdit()
         self.add_image_button = QPushButton('选择图片')
 
         self.supplier_input.setEditable(True)
@@ -57,10 +59,12 @@ class EditProductDialog(QDialog):
         self.model_label.setFont(font)
         self.supplier_label.setFont(font)
         self.category_label.setFont(font)
+        self.wlevel_label.setFont(font)
         self.image_label.setFont(font)
         self.model_input.setFont(font)
         self.supplier_input.setFont(font)
         self.category_input.setFont(font)
+        self.wlevel_input.setFont(font)
         self.add_image_button.setFont(font)
 
         # 布局
@@ -70,6 +74,8 @@ class EditProductDialog(QDialog):
         self.layout.addWidget(self.supplier_input)
         self.layout.addWidget(self.category_label)
         self.layout.addWidget(self.category_input)
+        self.layout.addWidget(self.wlevel_label)
+        self.layout.addWidget(self.wlevel_input)
         self.layout.addWidget(self.image_label)
         
         # 将选择图片按钮和删除产品按钮放在同一个水平布局中
@@ -125,6 +131,7 @@ class EditProductDialog(QDialog):
             self.model_input.setText(self.old_info['id'])
             self.supplier_input.setCurrentText(self.old_info['supplier'])
             self.category_input.setCurrentText(self.old_info['category'])
+            self.wlevel_input.setText(self.old_info['wlevel'])
 
     def select_image(self):
         options = QFileDialog.Options()
@@ -163,6 +170,7 @@ class EditProductDialog(QDialog):
         model_processed = model_raw.split('(')[0].replace('/', '-').replace('\n', '').strip()
         supplier = self.supplier_input.currentText().strip()
         category = self.category_input.currentText().strip()
+        wlevel = self.wlevel_input.text().strip()
 
         image = self.image_name
         if image == '':
@@ -176,6 +184,7 @@ class EditProductDialog(QDialog):
             'model': model_raw,
             'supplier': supplier,
             'category': category,
+            'wlevel': wlevel,
             'image': image
         }
 

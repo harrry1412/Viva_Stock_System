@@ -129,7 +129,7 @@ class DatabaseManager:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            cursor.execute("SELECT id, qty, supplier, category, note, image FROM rug where deleted=0 ORDER BY supplier, sort, id ASC")
+            cursor.execute("SELECT id, qty, supplier, category, note, image, wlevel FROM rug where deleted=0 ORDER BY supplier, sort, id ASC")
             rows = cursor.fetchall()
             return rows
         except Exception as e:
@@ -172,7 +172,7 @@ class DatabaseManager:
             conn = self.connect()
             cursor = conn.cursor()
             # 构建包含排序方向参数的查询
-            query = f"SELECT id, qty, supplier, category, note, image FROM rug where deleted=0 ORDER BY {key} {direction}"
+            query = f"SELECT id, qty, supplier, category, note, image, wlevel FROM rug where deleted=0 ORDER BY {key} {direction}"
             cursor.execute(query)
             rows = cursor.fetchall()
             return rows
@@ -521,7 +521,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             update_query = """
             UPDATE rug
-            SET id = %s, supplier = %s, category = %s, image = %s
+            SET id = %s, supplier = %s, category = %s, image = %s, wlevel = %s
             WHERE id = %s and deleted=0
             """
             # 执行更新操作
@@ -530,6 +530,7 @@ class DatabaseManager:
                 new_rug_data['supplier'],
                 new_rug_data['category'],
                 new_rug_data['image'],
+                new_rug_data['wlevel'],
                 old_model_id
             ))
             conn.commit()

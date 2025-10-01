@@ -89,7 +89,7 @@ class App(QMainWindow):
 
         self.db_manager = None
         self.init_database_connection()
-        self.title = f'Viva大仓库及地毯库存 {self.version} - Designed by Harry'
+        self.title = f'Viva大仓库及地毯库存 {self.version} - Engineered by Harry'
         self.check_version()
 
         self.logged = 0
@@ -402,7 +402,7 @@ class App(QMainWindow):
         return self.user_list
 
     def handle_cell_clicked(self, row, column):
-        self.set_all_column_index
+        self.set_all_column_index()
         if column==self.image_index:
             self.show_full_size_image(row)
             if not os.path.exists(self.base_path):
@@ -500,7 +500,7 @@ class App(QMainWindow):
         self.image_paths = {}
         self.table_widget.setRowCount(len(filtered_rows))
 
-        for i, (id, qty, supplier, category, note, image_path) in enumerate(filtered_rows):
+        for i, (id, qty, supplier, category, note, image_path, wlevel) in enumerate(filtered_rows):
             full_image_path = self.make_full_image_path(image_path)
             self.image_paths[i] = full_image_path
 
@@ -547,7 +547,7 @@ class App(QMainWindow):
             self.table_widget.setItem(i, self.qty_index, qty_item)
 
             # Note column
-            note_item = QTableWidgetItem(note)
+            note_item = QTableWidgetItem(f'{wlevel}\n----------\n{note}')
             note_item.setFlags(note_item.flags() & ~Qt.ItemIsEditable)
             note_item.setFont(font)
             note_item.setTextAlignment(Qt.AlignCenter)
@@ -670,14 +670,17 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
         rug_id = self.table_widget.item(row, self.id_index).text()
-        old_note = self.table_widget.item(row, self.note_index).text()
+        # old_note = self.table_widget.item(row, self.note_index).text()
+        rug_dict = self.db_manager.fetch_rug_by_id(rug_id)
+        old_note = rug_dict['note']
+        wlevel = rug_dict['wlevel']
         note_dialog = NoteDialog(self, rug_id, old_note, permission_level)
         result = note_dialog.exec_()
         if result == QDialog.Accepted:
             new_note = note_dialog.get_new_note()
-            self.update_note(row, rug_id, new_note, old_note)
+            self.update_note(row, rug_id, new_note, old_note, wlevel)
 
-    def update_note(self, row, rug_id, new_note, old_note):
+    def update_note(self, row, rug_id, new_note, old_note, wlevel):
         try:
             # 更新数据库中的备注信息
             success=self.db_manager.update_note(new_note, rug_id)
@@ -696,7 +699,7 @@ class App(QMainWindow):
 
             # 更新表格中的备注信息
             item = self.table_widget.item(row, self.note_index)
-            item.setText(new_note)
+            item.setText(f'{wlevel}\n----------\n{new_note}')
             self.refresh_time=datetime.datetime.now()
         except mysql.connector.Error as err:
             print(f"Error updating note: {err}")

@@ -26,7 +26,7 @@ class DataFetcher(QRunnable):
 
             filtered_rows = []
             for row in rows:
-                id, qty, supplier, category, note, image_path = row 
+                id, qty, supplier, category, note, image_path, wlevel = row 
 
                 # 检查是否符合筛选条件
                 if ((not self.filtered_suppliers or supplier in self.filtered_suppliers) and 
