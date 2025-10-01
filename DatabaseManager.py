@@ -92,6 +92,21 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def fetch_wlevel(self):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            cursor.execute("SELECT DISTINCT wlevel FROM rug where deleted=0")
+            wlevels = [row[0] for row in cursor.fetchall()]
+            return wlevels
+        except Exception as e:
+            print(f"Error fetching suppliers: {e}")
+            return []
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
     def fetch_users(self):
         conn = None
         try:
@@ -158,7 +173,7 @@ class DatabaseManager:
     
     def fetch_ordered_rugs(self, key, direction):
         # 验证 key 是否为有效的列名
-        valid_keys = ['id', 'qty', 'supplier', 'note', 'image']
+        valid_keys = ['id', 'qty', 'supplier', 'note', 'image', 'wlevel']
         if key not in valid_keys:
             raise ValueError("无效的排序键")
 

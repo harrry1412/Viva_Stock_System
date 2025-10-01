@@ -43,7 +43,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V10.5.1'
+        self.version = 'V11.0.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -55,6 +55,7 @@ class App(QMainWindow):
 
         self.supplier_list = None
         self.category_list = None
+        self.wlevel_list = None
         self.user_list = None
         self.filtered_suppliers = []
         self.filtered_categories = []
@@ -113,7 +114,7 @@ class App(QMainWindow):
         self.qty_index = 0
         self.note_index = 0
         self.record_index = 0
-        self.action_index = 0
+        self.wlevel_index = 0
         self.refresh_time = datetime.datetime.now()
 
 
@@ -271,8 +272,8 @@ class App(QMainWindow):
 
 
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(7)  #总列数
-        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "类型", "供货商", "数量", "备注", "记录"])
+        self.table_widget.setColumnCount(8)  #总列数
+        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "所在层", "类型", "供货商", "数量", "备注", "记录"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table_widget.verticalHeader().setVisible(False)
         self.populate_table()
@@ -310,6 +311,7 @@ class App(QMainWindow):
         
         header.setSectionResizeMode(self.image_index, QHeaderView.Interactive)
         header.setSectionResizeMode(self.id_index, QHeaderView.Interactive)
+        header.setSectionResizeMode(self.wlevel_index, QHeaderView.Interactive)
         header.setSectionResizeMode(self.category_index, QHeaderView.Interactive)
         header.setSectionResizeMode(self.supplier_index, QHeaderView.Interactive)
         header.setSectionResizeMode(self.qty_index, QHeaderView.Interactive)
@@ -329,13 +331,15 @@ class App(QMainWindow):
         header = self.table_widget.horizontalHeader()
         totalWidth=self.width()
 
-        header.resizeSection(self.image_index, totalWidth * 0.1)
+        header.resizeSection(self.image_index, totalWidth * 0.10)
         header.resizeSection(self.id_index, totalWidth * 0.25)
         header.resizeSection(self.category_index, totalWidth * 0.07)
         header.resizeSection(self.supplier_index, totalWidth * 0.07)
         header.resizeSection(self.qty_index, totalWidth * 0.07)
-        header.resizeSection(self.note_index, totalWidth * 0.24)
-        header.resizeSection(self.record_index, totalWidth * 0.2)
+        header.resizeSection(self.wlevel_index, totalWidth * 0.07)
+        header.resizeSection(self.note_index, totalWidth * 0.22)
+        header.resizeSection(self.record_index, totalWidth * 0.18)
+
 
     # Overwrite resizeEvent method
     def resizeEvent(self, event):
@@ -347,9 +351,9 @@ class App(QMainWindow):
 
     def on_header_clicked(self, logicalIndex):
         # 检查被点击的列是否是可排序的列
-        if logicalIndex in [self.id_index, self.category_index, self.supplier_index, self.qty_index]: 
+        if logicalIndex in [self.id_index, self.category_index, self.supplier_index, self.qty_index, self.wlevel_index]: 
             # '型号', '供货商', '数量' 列的排序键
-            order_keys = {self.id_index: 'id', self.category_index: 'category', self.supplier_index: 'supplier', self.qty_index: 'qty'}
+            order_keys = {self.id_index: 'id', self.category_index: 'category', self.supplier_index: 'supplier', self.qty_index: 'qty', self.wlevel_index: 'wlevel'}
 
             # 获取当前列的排序键
             order_key = order_keys[logicalIndex]
@@ -380,6 +384,10 @@ class App(QMainWindow):
         self.category_list = self.db_manager.fetch_category()
         self.category_list.sort(key=lambda x: lazy_pinyin(x))
 
+    def update_wlevels(self):
+        self.wlevel_list = self.db_manager.fetch_wlevel()
+        self.wlevel_list.sort()
+
     def update_user_list(self):
         fetcher = UserFetcher(self.db_manager)
         fetcher.signals.users_loaded.connect(self.set_user_list)
@@ -397,6 +405,9 @@ class App(QMainWindow):
     
     def get_categories(self):
         return self.category_list
+    
+    def get_wlevels(self):
+        return self.wlevel_list
     
     def get_user_list(self):
         return self.user_list
@@ -484,6 +495,7 @@ class App(QMainWindow):
         # 更新Suppliers category列表
         self.update_suppliers()
         self.update_categories()
+        self.update_wlevels()
         #self.update_user_list()
         # 将滚动条移动到最上面
         self.table_widget.verticalScrollBar().setValue(0)
@@ -525,6 +537,13 @@ class App(QMainWindow):
             item = self.table_widget.item(i, 1)
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
 
+            # WLEVEL column
+            wlevel_item = QTableWidgetItem(str(wlevel))
+            wlevel_item.setFlags(wlevel_item.flags() & ~Qt.ItemIsEditable)
+            wlevel_item.setFont(font)
+            wlevel_item.setTextAlignment(Qt.AlignCenter)
+            self.table_widget.setItem(i, self.wlevel_index, wlevel_item)
+
             # Category column
             category_item = QTableWidgetItem(category)
             category_item.setFlags(category_item.flags() & ~Qt.ItemIsEditable)
@@ -547,7 +566,7 @@ class App(QMainWindow):
             self.table_widget.setItem(i, self.qty_index, qty_item)
 
             # Note column
-            note_item = QTableWidgetItem(f'{wlevel}\n----------\n{note}')
+            note_item = QTableWidgetItem(note)
             note_item.setFlags(note_item.flags() & ~Qt.ItemIsEditable)
             note_item.setFont(font)
             note_item.setTextAlignment(Qt.AlignCenter)
@@ -670,17 +689,14 @@ class App(QMainWindow):
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
         rug_id = self.table_widget.item(row, self.id_index).text()
-        # old_note = self.table_widget.item(row, self.note_index).text()
-        rug_dict = self.db_manager.fetch_rug_by_id(rug_id)
-        old_note = rug_dict['note']
-        wlevel = rug_dict['wlevel']
+        old_note = self.table_widget.item(row, self.note_index).text()
         note_dialog = NoteDialog(self, rug_id, old_note, permission_level)
         result = note_dialog.exec_()
         if result == QDialog.Accepted:
             new_note = note_dialog.get_new_note()
-            self.update_note(row, rug_id, new_note, old_note, wlevel)
+            self.update_note(row, rug_id, new_note, old_note)
 
-    def update_note(self, row, rug_id, new_note, old_note, wlevel):
+    def update_note(self, row, rug_id, new_note, old_note):
         try:
             # 更新数据库中的备注信息
             success=self.db_manager.update_note(new_note, rug_id)
@@ -699,7 +715,7 @@ class App(QMainWindow):
 
             # 更新表格中的备注信息
             item = self.table_widget.item(row, self.note_index)
-            item.setText(f'{wlevel}\n----------\n{new_note}')
+            item.setText(new_note)
             self.refresh_time=datetime.datetime.now()
         except mysql.connector.Error as err:
             print(f"Error updating note: {err}")
@@ -1174,7 +1190,7 @@ class App(QMainWindow):
         self.qty_index=self.get_column_index_by_name('数量')
         self.note_index=self.get_column_index_by_name('备注')
         self.record_index=self.get_column_index_by_name('记录')
-        self.action_index=self.get_column_index_by_name('操作')
+        self.wlevel_index=self.get_column_index_by_name('所在层')
 
     def update_login_dependent_ui(self):
         is_logged_in = self.logged == 1

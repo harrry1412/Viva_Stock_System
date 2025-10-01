@@ -37,11 +37,12 @@ class EditProductDialog(QDialog):
         self.model_input = QLineEdit()
         self.supplier_input = QComboBox()
         self.category_input = QComboBox()
-        self.wlevel_input = QLineEdit()
+        self.wlevel_input = QComboBox()
         self.add_image_button = QPushButton('选择图片')
 
         self.supplier_input.setEditable(True)
         self.category_input.setEditable(True)
+        self.wlevel_input.setEditable(True)
         self.supplier_input.addItem("")
         self.category_input.addItem("")
 
@@ -50,10 +51,15 @@ class EditProductDialog(QDialog):
         for supplier in suppliers:
             self.supplier_input.addItem(supplier)
 
-        # 填充组合框选项
+        # 填充类别组合框选项
         categories = self.parent().get_categories()
         for category in categories:
             self.category_input.addItem(category)
+
+        # 填充所在层组合框选项
+        wlevels = self.parent().get_wlevels()
+        for wlevel in wlevels:
+            self.wlevel_input.addItem(str(wlevel))
 
         # 设置字体
         self.model_label.setFont(font)
@@ -131,7 +137,7 @@ class EditProductDialog(QDialog):
             self.model_input.setText(self.old_info['id'])
             self.supplier_input.setCurrentText(self.old_info['supplier'])
             self.category_input.setCurrentText(self.old_info['category'])
-            self.wlevel_input.setText(self.old_info['wlevel'])
+            self.wlevel_input.setCurrentText(str(self.old_info['wlevel']))
 
     def select_image(self):
         options = QFileDialog.Options()
@@ -170,7 +176,7 @@ class EditProductDialog(QDialog):
         model_processed = model_raw.split('(')[0].replace('/', '-').replace('\n', '').strip()
         supplier = self.supplier_input.currentText().strip()
         category = self.category_input.currentText().strip()
-        wlevel = self.wlevel_input.text().strip()
+        wlevel = self.wlevel_input.currentText().strip()
 
         image = self.image_name
         if image == '':
@@ -193,6 +199,7 @@ class EditProductDialog(QDialog):
         model = self.model_input.text().strip()
         supplier = self.supplier_input.currentText().strip()
         category = self.category_input.currentText().strip()
+        wlevel = self.wlevel_input.currentText().strip()
 
         # 单独检查每个字段
         if not model:
@@ -205,6 +212,12 @@ class EditProductDialog(QDialog):
 
         if not category:
             QMessageBox.warning(self, '警告', '产品类别不能为空。')
+            return
+        
+        try:
+            int(wlevel)
+        except ValueError:
+            QMessageBox.warning(self, '警告', '所在层必须是整数。')
             return
 
         # 检查model（id）是否重复
