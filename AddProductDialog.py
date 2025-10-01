@@ -30,6 +30,7 @@ class AddProductDialog(QDialog):
         self.quantity_label = QLabel('数量:')
         self.supplier_label = QLabel('供货商:')
         self.category_label = QLabel('产品类别:')
+        self.wlevel_label = QLabel('所在仓库层:')
         self.note_label = QLabel('备注:')
         self.image_label = QLabel('图片:')
 
@@ -37,24 +38,33 @@ class AddProductDialog(QDialog):
         self.quantity_input = QLineEdit()
         # 创建供货商输入框
         self.supplier_input = QComboBox()
-        self.supplier_input.setEditable(True)  # 允许用户手动输入
+        self.supplier_input.setEditable(True)
         
         self.category_input = QComboBox()
-        self.category_input.setEditable(True)  # 允许用户手动输入
+        self.category_input.setEditable(True)
+
+        self.wlevel_input = QComboBox()
+        self.wlevel_input.setEditable(True)
 
         # 添加一个空的选项作为默认选项
-        self.supplier_input.addItem("")
-        self.category_input.addItem("")
+        self.supplier_input.addItem('')
+        self.category_input.addItem('')
+        self.wlevel_input.setCurrentText('0')
 
         # 填充供货商组合框选项
         suppliers = self.parent().supplier_list
         for supplier in suppliers:
             self.supplier_input.addItem(supplier)
 
-        # 填充组合框选项
+        # 填充类别组合框选项
         categories = self.parent().category_list
         for category in categories:
             self.category_input.addItem(category)
+
+        # 填充所在层组合框选项
+        wlevels = self.parent().wlevel_list
+        for wlevel in wlevels:
+            self.wlevel_input.addItem(str(wlevel))
 
         self.note_input = QPlainTextEdit()
         self.add_image_button = QPushButton('选择图片')
@@ -66,6 +76,7 @@ class AddProductDialog(QDialog):
         self.category_label.setFont(font)
         self.note_label.setFont(font)
         self.image_label.setFont(font)
+        self.wlevel_label.setFont(font)
 
         self.model_input.setFont(font)
         self.quantity_input.setFont(font)
@@ -73,6 +84,7 @@ class AddProductDialog(QDialog):
         self.category_input.setFont(font)
         self.note_input.setFont(font)
         self.add_image_button.setFont(font)
+        self.wlevel_input.setFont(font)
 
         # 添加到布局
         self.layout.addWidget(self.model_label)
@@ -83,6 +95,8 @@ class AddProductDialog(QDialog):
         self.layout.addWidget(self.supplier_input)
         self.layout.addWidget(self.category_label)
         self.layout.addWidget(self.category_input)
+        self.layout.addWidget(self.wlevel_label)
+        self.layout.addWidget(self.wlevel_input)
         self.layout.addWidget(self.note_label)
         self.layout.addWidget(self.note_input)
         self.layout.addWidget(self.image_label)
@@ -150,6 +164,7 @@ class AddProductDialog(QDialog):
         supplier = self.supplier_input.currentText().strip()  # 获取供货商输入框的文本内容
         category = self.category_input.currentText().strip()  # 获取产品类别输入框的文本内容
         note = self.note_input.toPlainText().strip()  # 获取备注输入框的文本内容
+        wlevel = self.wlevel_input.currentText().strip()  # 获取所在层输入框的文本内容
 
         # 检查型号和数量是否为空
         if not model or not quantity:
@@ -167,16 +182,30 @@ class AddProductDialog(QDialog):
             supplier = supplier_database
             QMessageBox.warning(self, '警告', f'该供货商已存在，已统一大小写为 "{supplier}"')
             print(f'该供货商已存在，已统一大小写为 "{supplier}"')
+
+        # 检查所在层是否为空
+        if not wlevel:
+            QMessageBox.warning(self, '警告', '所在仓库层不能为空')
+            return None
         
+        # 检查所在层是否为整数
+        try:
+            int(wlevel)
+        except ValueError:
+            QMessageBox.warning(self, '警告', '所在仓库层必须为整数')
+            return
+
         # 检查类别是否为空
         if not category:
             QMessageBox.warning(self, '警告', '产品类别不能为空')
             return None
 
         # 检查数量是否为整数
-        if not quantity.isdigit():
-            QMessageBox.warning(self, '错误', '数量必须是一个整数')
-            return None
+        try:
+            int(quantity)
+        except ValueError:
+            QMessageBox.warning(self, '警告', '数量必须为整数')
+            return
 
         # 检查型号是否已存在
         if self.parent().db_manager.id_exists(model):
