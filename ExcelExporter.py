@@ -33,7 +33,7 @@ class ExcelExporter(QRunnable):
             rows_to_export = self.db_manager.fetch_rugs()
 
             # Specify custom column order
-            column_order = ['Image', 'Model', 'Type', 'Quantity', 'Supplier', 'Remarks']
+            column_order = ['Image', 'Model', 'Quantity', 'Type', 'Supplier', 'WLevel', 'Remarks']
 
             # Sort the data to meet the requirements
             rows_to_export.sort(key=lambda x: (x[2], x[1], x[0]))
@@ -54,7 +54,7 @@ class ExcelExporter(QRunnable):
 
             # Populate the default worksheet with data
             for row_idx, row in enumerate(rows_to_export, start=1):
-                row_data = [row[5], row[0], row[3], row[1], row[2], row[4]]
+                row_data = [row[5], row[0], row[1], row[3], row[2], row[6], row[4]]
                 default_sheet.write_row(row_idx, 1, row_data[1:])
 
                 if self.include_images:
@@ -99,7 +99,7 @@ class ExcelExporter(QRunnable):
 
                 supplier_data = [row for row in rows_to_export if row[2] == supplier]
                 for row_idx, row in enumerate(supplier_data, start=1):
-                    row_data = [row[5], row[0], row[3], row[1], row[2], row[4]]
+                    row_data = [row[5], row[0], row[1], row[3], row[2], row[6], row[4]]
                     sheet.write_row(row_idx, 1, row_data[1:])
 
                     if self.include_images:
