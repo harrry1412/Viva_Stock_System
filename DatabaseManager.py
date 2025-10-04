@@ -739,7 +739,7 @@ class DatabaseManager:
             SET deleted = 1
             WHERE id = %s;
             """
-            cursor.execute(query, id)
+            cursor.execute(query, (id,))
             conn.commit()
             # self.update_last_modified_time(user)  # 更新最后修改时间
             return True
