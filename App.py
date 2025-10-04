@@ -474,20 +474,26 @@ class App(QMainWindow):
         return None
     
     def show_about_bool(self):
+        '''
         dict=self.db_manager.fetch_show_about()
         show=dict['user']
         if show == 'yes':
             return True
         else:
             return False
+        '''
+        return True
         
     def show_manage_bool(self):
+        '''
         dict=self.db_manager.fetch_show_manage()
         show=dict['user']
         if show == 'yes':
             return True
         else:
             return False
+        '''
+        return True
 
 
     def populate_table(self):
