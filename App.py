@@ -43,7 +43,7 @@ import time
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.version = 'V11.0.0'
+        self.version = 'V11.1.0'
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.full_size_image_thread_pool = QThreadPool()
@@ -273,7 +273,7 @@ class App(QMainWindow):
 
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(8)  #总列数
-        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "所在层", "类型", "供货商", "数量", "备注", "记录"])
+        self.table_widget.setHorizontalHeaderLabels(["图片", "型号", "数量", "类型", "供货商", "所在层", "备注", "记录"])
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table_widget.verticalHeader().setVisible(False)
         self.populate_table()
@@ -352,7 +352,6 @@ class App(QMainWindow):
     def on_header_clicked(self, logicalIndex):
         # 检查被点击的列是否是可排序的列
         if logicalIndex in [self.id_index, self.category_index, self.supplier_index, self.qty_index, self.wlevel_index]: 
-            # '型号', '供货商', '数量' 列的排序键
             order_keys = {self.id_index: 'id', self.category_index: 'category', self.supplier_index: 'supplier', self.qty_index: 'qty', self.wlevel_index: 'wlevel'}
 
             # 获取当前列的排序键
@@ -538,7 +537,7 @@ class App(QMainWindow):
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
 
             # WLEVEL column
-            wlevel_item = QTableWidgetItem(str(wlevel))
+            wlevel_item = QTableWidgetItem(f'#{str(wlevel)}')
             wlevel_item.setFlags(wlevel_item.flags() & ~Qt.ItemIsEditable)
             wlevel_item.setFont(font)
             wlevel_item.setTextAlignment(Qt.AlignCenter)
@@ -783,7 +782,7 @@ class App(QMainWindow):
                 if success:
                     # insert into database success, copy image now
                     add_product_dialog.copy_images_to_folder()
-                    success=self.db_manager.insert_record(product_data[0], product_data[7], '新增产品', 0, product_data[1], product_data[6], datetime.datetime.now())
+                    success=self.db_manager.insert_record(product_data['model'], product_data['user'], '新增产品', 0, product_data['quantity'], product_data['date'], datetime.datetime.now())
                     self.db_manager.update_last_modified_time(self.user)
                     if not success:
                         self.exit_with_conn_error()

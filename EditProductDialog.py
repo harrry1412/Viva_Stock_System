@@ -182,9 +182,6 @@ class EditProductDialog(QDialog):
         if image == '':
             image = model_processed + '.png'
 
-        if not model_processed:
-            QMessageBox.warning(self, '警告', '型号不能为空')
-            return None
 
         return {
             'model': model_raw,

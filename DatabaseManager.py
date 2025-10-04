@@ -354,26 +354,30 @@ class DatabaseManager:
 
 
     def insert_product(self, product_data):
-        # 处理数据中的None值
-        processed_data = []
-        for data in product_data:
-            if data is None:
-                processed_data.append('')
-            else:
-                processed_data.append(data)
-        processed_data = tuple(processed_data)  # 转换为元组以符合cursor.execute的要求
-
         conn = None
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            insert_query = "INSERT INTO rug (id, qty, category, supplier, note, image, adddate, adduser) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(insert_query, processed_data)
+            insert_query = """
+            INSERT INTO rug (id, qty, category, supplier, note, image, adddate, adduser, wlevel)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            # 执行插入操作
+            cursor.execute(insert_query, (
+                product_data['model'],
+                product_data['quantity'],
+                product_data['category'],
+                product_data['supplier'],
+                product_data['note'],
+                product_data['image'],
+                product_data['date'],
+                product_data['user'],
+                product_data['wlevel']
+            ))
             conn.commit()
-            # self.update_last_modified_time(processed_data[7])
             return True
-        except Exception as e:
-            print(f"插入产品时出错: {e}")
+        except mysql.connector.Error as err:
+            print(f"Error inserting product: {err}")
             if conn:
                 conn.rollback()
             return False

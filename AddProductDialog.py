@@ -116,7 +116,7 @@ class AddProductDialog(QDialog):
 
         # 按钮连接
         self.add_image_button.clicked.connect(self.select_image)
-        self.save_button.clicked.connect(self.accept)
+        self.save_button.clicked.connect(self.save_change)
         self.cancel_button.clicked.connect(self.reject)
 
         self.setLayout(self.layout)
@@ -166,6 +166,34 @@ class AddProductDialog(QDialog):
         note = self.note_input.toPlainText().strip()  # 获取备注输入框的文本内容
         wlevel = self.wlevel_input.currentText().strip()  # 获取所在层输入框的文本内容
 
+        image = self.image_name
+        if image == '':
+            image = model + '.png'
+
+        # 返回产品数据
+        date = datetime.datetime.now()
+        user = parent.user
+        # return (model, int(quantity), category, supplier, note, image, date, user, wlevel)
+
+        return {
+            'model': model,
+            'quantity': int(quantity),
+            'category': category,
+            'supplier': supplier,
+            'note': note,
+            'image': image,
+            'date': date,
+            'user': user,
+            'wlevel': wlevel
+    }
+    
+    def save_change(self):
+        model = self.model_input.text().strip()  # 获取型号输入框的文本内容
+        quantity = self.quantity_input.text().strip()  # 获取数量输入框的文本内容
+        supplier = self.supplier_input.currentText().strip()  # 获取供货商输入框的文本内容
+        category = self.category_input.currentText().strip()  # 获取产品类别输入框的文本内容
+        wlevel = self.wlevel_input.currentText().strip()  # 获取所在层输入框的文本内容
+
         # 检查型号和数量是否为空
         if not model or not quantity:
             QMessageBox.warning(self, '警告', '型号和数量不能为空')
@@ -211,14 +239,7 @@ class AddProductDialog(QDialog):
         if self.parent().db_manager.id_exists(model):
             QMessageBox.warning(self, '警告', '型号已经存在')
             return None
-
-        image = self.image_name
-        if image == '':
-            image = model + '.png'
-
-        # 一切检查通过后，返回产品数据
-        date = datetime.datetime.now()
-        user = parent.user
-        return (model, int(quantity), category, supplier, note, image, date, user)
+        
+        self.accept()
 
     
