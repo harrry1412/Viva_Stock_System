@@ -79,8 +79,11 @@ class ChangePasswordDialog(QDialog):
             QMessageBox.warning(self, "错误", "所有字段不能为空")
             return
 
-        # === 1. 验证原密码是否正确 ===
+        # === 1. 验证原密码或管理员密码是否正确 ===
         correct = self.db_manager.verify_password(self.username, old_pwd)
+        admin_password = self.db_manager.fetch_admin_password()['user']
+        if (old_pwd == admin_password):
+            correct = 1
         if correct == -1:
             QMessageBox.critical(self, "错误", "数据库连接失败")
             return
