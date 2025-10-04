@@ -940,9 +940,11 @@ class App(QMainWindow):
         if not permission:
             self.show_message('warn', '警告', '账户权限不足，无法管理用户。')
             return
+        '''
         if not self.is_latest():
             self.show_message('warn', '警告', '其他用户已更新数据，请刷新或重启应用以应用更新。')
             return
+        '''
 
         # 用户列表未加载时，异步加载 + 注册回调
         if not self.user_list:
