@@ -729,6 +729,29 @@ class DatabaseManager:
             if conn and conn.is_connected():
                 conn.close()
 
+    def delete_record_by_id(self, id):
+        conn = None
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            query = """
+            UPDATE record
+            SET deleted = 1
+            WHERE id = %s;
+            """
+            cursor.execute(query, id)
+            conn.commit()
+            # self.update_last_modified_time(user)  # 更新最后修改时间
+            return True
+        except Exception as e:
+            print(f"Error deleting record: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn and conn.is_connected():
+                conn.close()
+
     def delete_product(self, id, user, now):
         conn = None
         try:

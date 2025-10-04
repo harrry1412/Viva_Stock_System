@@ -248,8 +248,9 @@ class EditProductDialog(QDialog):
         reply = QMessageBox.warning(self, '警告', '您确定要删除该产品吗？', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             date_now = datetime.datetime.now()
-            success = self.db_manager.delete_product(self.old_info['id'], self.user, date_now)
-            if success:
+            success1 = self.db_manager.delete_product(self.old_info['id'], self.user, date_now)
+            success2 = self.db_manager.delete_record_by_id(self.old_info['id'])
+            if success1 and success2:
                 self.delete_signal.emit()  # 发出信号
                 self.close()
             else:

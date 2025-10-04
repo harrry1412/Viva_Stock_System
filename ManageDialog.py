@@ -184,7 +184,7 @@ class ManageDialog(QDialog):
     def save_permissions(self):
         selected_user = self.user_combo.currentText()
         status = "1" if self.active_radio.isChecked() else "0"
-
+        
         if status == "1":
             selected_perms = {
                 key: 1 if checkbox.isChecked() else 0
